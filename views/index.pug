@@ -1,0 +1,57 @@
+extends layout
+block content   
+  div(class="container")
+    form(id="login")
+      div(class="container text-center")
+        h2 Welcome
+        div
+          p Thanks to visit the FIDO2 Thales demo website: if you already have registered a FIDO device, just click on LOGIN to enter your private space.      
+        div(style="width: 100%; text-align: center")
+          span(id="error" class="text-danger") &nbsp;
+        div(class="form-group row" id="name-field")
+          label(for="name", class="col-md-4 col-form-label text-left text-md-right") Name
+          div(class="col-md-6")
+            input(type="text",class="form-control",id="name")
+          div(class="col-md-2")
+        button(type="submit", class="btn btn-primary btn-lg mt-4") Login
+        br
+        br
+        a(href="register") Not registered yet? Registration
+
+  script.
+    $( document ).ready(function() {
+            
+      $('#login').submit(function(event) {
+        event.preventDefault();
+        $('#error').empty();
+
+        let name = this.name.value;
+        let userVerification = $('#userVerification').val();
+        let requireResidentKey = $('#requireResidentKey').val();
+
+        if( navigator.credentials == null)
+          return $("#error").html(`Your browser in not supported`);
+
+        postWebAuthN('getPublicKeyCredentialRequestOptions', {name, userVerification, requireResidentKey})
+          .then((response) => {
+            // Decode base64 id(s)
+            let publicKey = preformatGetAssertReq(response);
+            return navigator.credentials.get({ publicKey })
+          })
+          .then((response) => {
+            let getAssertionResponse = publicKeyCredentialToJSON(response);
+            return postWebAuthN('verifyAuthenticatorAssertionResponse', getAssertionResponse);
+          })
+          .then((response) => {
+            if( response.message !== undefined) 
+              return $("#error").html(response.message)
+            // Success: redirect to main page
+            document.location.href="main";
+          })
+          .catch((error) => {
+            if (error instanceof DOMException)
+              return $("#error").html("The operation either timed out or was cancelled");                      
+            $("#error").html(error.message);
+          })
+        })
+    });

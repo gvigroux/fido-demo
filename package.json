@@ -1,0 +1,27 @@
+{
+  "name": "webauthn-thales-demo",
+  "version": "0.0.2",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "@fidm/x509": "^1.2.1",
+    "base64url": "^2.0.0",
+    "body-parser": "^1.19.0",
+    "cbor": "^3.0.3",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "lowdb": "^1.0.0",
+    "pug": "^3.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fido-alliance/"
+  },
+  "private": true,
+  "author": "Yuriy Ackermann <yuriy@fidoalliance.org> (https://jeman.de/)",
+  "bugs": {
+    "url": "https://github.com/fido-alliance//issues",
+    "email": "yuriy@fidoalliance.org"
+  },
+  "homepage": "https://github.com/fido-alliance/#readme"
+}

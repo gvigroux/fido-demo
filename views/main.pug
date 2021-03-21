@@ -1,0 +1,110 @@
+extends layout
+block content
+
+  div(class="container")
+    div(class="container text-center")
+      h2 Welcome 
+        span(id="name") !
+      div(style="width: 100%; text-align: center")
+        span(id="error" class="text-danger") &nbsp;
+
+      each authenticator in authenticators
+        - var image = 'img/product/' + authenticator.deviceImage;
+        - var cert = authenticator.cert;
+        div(class="container border m-4")
+          div(class="row")
+            div(class="col-md-4 my-auto")
+              img(src=image)
+            div(class="col-md-7 text-left my-auto")
+              h4 #{authenticator.deviceName}
+              | Type: #{authenticator.fmt}
+              br
+              | AAGUID: #{authenticator.aaguid}
+              br
+              | Counter: #{authenticator.counter}
+            div(class="col-md-1 text-center my-auto  mt-3 pt-3 mb-4 pb-4")
+              a(href=cert)
+                img(src="img/certificate.png", width="50px")
+
+
+      // Hidden button bar (with the register new button)
+      div(class="row mt-3 mb-3 d-none")
+        div(class="col-sm")
+        div(class="col-sm")
+          button(class="btn btn-primary btn-lg", id="registerNewButton") Register a new token
+        div(class="col-sm")
+        div(class="col-sm")
+          button(class="btn btn-secondary btn-lg", onclick="location.href='logout';") Logout
+        div(class="col-sm")
+      
+      div(class="row mt-3 mb-3")
+        div(class="col-sm")
+          button(class="btn btn-secondary btn-lg", onclick="location.href='logout';") Logout
+   
+
+
+      // Contains LOGS-
+      if(logType == 1)
+        div(class="container text-left", id="registration-log") 
+          div(class="row")     
+            | Attestation
+          div(class="row log")
+            pre(class="d-flex text-break", style="word-break: break-word", id="attestation-log") #{log.clientData}
+          div(class="row")
+            | Assertion
+          div(class="row log")
+            pre(class="d-flex text-break", style="word-break: break-word", id="credential-create-log") #{log.assertion}
+          div(class="row")
+            | Assertion response
+          div(class="row log")
+            pre(class="d-flex text-break", style="word-break: break-word", id="clientDataJSON-registration-log") #{log.assertion_response}
+      else if(logType == 2)     
+        div(class="container text-left", id="login-log")
+          div(class="row")     
+            | credentials.create() - Parameters
+          div(class="row log")
+            pre(class="d-flex text-break", style="word-break: break-word", id="credentials-get-log") #{log.credentials_create_parameters}
+          div(class="row")     
+            | credentials.create() - Reponse
+          div(class="row log")
+            pre(class="d-flex text-break", style="word-break: break-word", id="credentials-response-log") #{log.credentials_create_response}
+          div(class="row")     
+            | Parsed Client Data
+          div(class="row log")
+            pre(class="d-flex text-break", style="word-break: break-word", id="credentials-response-log") #{log.parsedClientData}
+          div(class="row")     
+            | Relying Party response
+          div(class="row log")
+            pre(class="d-flex text-break", style="word-break: break-word", id="relyingPartyResponse-login-log") #{log.relyingPartyResponse}
+  script.
+    $( document ).ready(function() {
+
+        $("#registerNewButton").click( function()
+        {
+          $('#error').empty();
+          let userVerification    = $('#userVerification').val();
+          let requireResidentKey  = $('#requireResidentKey').val();
+
+          postWebAuthN('getMakeCredentialsChallenge', {userVerification, requireResidentKey})
+            .then((response) => {
+              // Receive 'credentials create' options
+              let publicKey = preformatMakeCredReq(response);
+              return navigator.credentials.create({ publicKey });
+            })
+            .then((response) => {
+              let makeCredResponse = publicKeyCredentialToJSON(response);
+              return postWebAuthN('verifyAttestation', makeCredResponse);
+            })
+            .then((response) => {
+              if( response.message !== undefined) 
+                return $("#error").html(response.message)
+              // Success: redirect to main page
+              document.location.href="main";
+            })
+            .catch((error) => {
+              if (error instanceof DOMException)
+                return $("#error").html("The operation either timed out or was cancelled");                      
+              $("#error").html(error.message);
+            })
+        })
+    });

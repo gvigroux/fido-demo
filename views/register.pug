@@ -1,0 +1,64 @@
+extends layout
+block content    
+  div(class="container")
+    form(id="register")
+      input(type="hidden", id="myField", value="")
+      div(class="container text-center")
+        h2 Register
+        div(style="width: 100%; text-align: center")
+          span(id="error") &nbsp;
+        div(class="form-group row")
+          label(for="name", class="col-md-4 col-form-label text-left text-md-right") Name
+          div(class="col-md-6")
+            input(type="text",class="form-control",id="name")
+          div(class="col-md-2")
+        div(class="form-group row")
+          label(for="displayName", class="col-sm-4 col-form-label text-left text-md-right") Display Name
+          div(class="col-md-6")
+            input(type="text",class="form-control",id="displayName")
+          div(class="col-md-2")
+        button(type="submit", class="btn btn-primary mt-4 btn-lg") Register
+        br
+        br
+        a(href="/") Already registered? Login page
+  script.
+    $( document ).ready(function() {
+            
+      $('#register').submit(function(event) {
+        event.preventDefault();
+        $('#error').empty();
+
+        let name        = this.name.value;
+        let displayName = this.displayName.value;
+        let userVerification    = $('#userVerification').val();
+        let requireResidentKey  = $('#requireResidentKey').val();
+
+        if(!name || !displayName)
+          return $("#error").html(`Name is missing!`);
+
+        if( navigator.credentials == null)
+          return $("#error").html(`Your browser in not supported`);
+
+        postWebAuthN('getMakeCredentialsChallenge', {name, displayName, userVerification, requireResidentKey})
+          .then((response) => {
+            // Receive 'credentials create' options
+            let publicKey = preformatMakeCredReq(response);
+            return navigator.credentials.create({ publicKey });
+          })
+          .then((response) => {
+            let makeCredResponse = publicKeyCredentialToJSON(response);
+            return postWebAuthN('verifyAttestation', makeCredResponse);
+          })
+          .then((response) => {
+            if( response.message !== undefined) 
+              return $("#error").html(response.message)
+            // Success: redirect to main page
+            document.location.href="main";
+          })
+          .catch((error) => {
+            if (error instanceof DOMException)
+              return $("#error").html("The operation either timed out or was cancelled");                      
+            $("#error").html(error.message);
+          })
+        })
+    });

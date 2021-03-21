@@ -1,0 +1,238 @@
+@font-face {
+	font-family: 'gibson';
+	font-weight: 200;
+	src: url('fonts/Gibson-Light.eot');
+	src: url('fonts/Gibson-Light.eot') format('embedded-opentype'),
+		url('fonts/Gibson-Light.woff') format('woff'),
+		url('fonts/Gibson-Light.ttf') format('truetype'),
+		url('fonts/Gibson-Light.svg#Gibson-Light') format('svg');
+}
+
+@font-face{
+	font-family: 'gibson';
+	font-weight: 400;
+	src:url('fonts/Gibson-Regular.eot');
+	src:url('fonts/Gibson-Regular.eot') format("embedded-opentype"),
+		url('fonts/Gibson-Regular.woff') format("woff"),
+		url('fonts/Gibson-Regular.ttf') format("truetype"),
+		url('fonts/Gibson-Regular.svg#Gibson-Regular') format("svg");
+}
+
+@font-face{
+	font-family: 'gibson';
+	font-weight: 500;
+	src:url('fonts/Gibson-SemiBold.eot');
+	src:url('fonts/Gibson-SemiBold.eot') format("embedded-opentype"),
+		url('fonts/Gibson-SemiBold.woff') format("woff"),
+		url('fonts/Gibson-SemiBold.ttf') format("truetype"),
+		url('fonts/Gibson-SemiBold.svg#Gibson-SemiBold') format("svg");
+}			
+		
+
+@font-face{
+	font-family: 'gibson';
+	font-weight: 700;
+	src:url('fonts/Gibson-Bold.eot');
+	src:url('fonts/Gibson-Bold.eot') format("embedded-opentype"),
+		url('fonts/Gibson-Bold.woff') format("woff"),
+		url('fonts/Gibson-Bold.ttf') format("truetype"),
+		url('fonts/Gibson-Bold.svg#Gibson-Bold') format("svg");
+		}
+
+html, body, div, .container-fluid, .row, .col{
+	margin: 0 0 0 0; 
+	padding: 0 0 0 0;
+}
+
+
+body {
+	background: #edf1f4;
+}
+  
+.container {
+	margin-right: auto;
+	margin-left: auto;
+	max-width: 950px;
+	background: white;
+	font-weight: 400;
+	font-size: 20px;
+	line-height: 28px;
+	font-family: gibson;
+}
+
+.content {
+	background: white;
+	font-weight: 400;
+	font-size: 20px;
+	line-height: 28px;
+	font-family: gibson;
+}
+
+.title {
+	height: 60px;
+	background: white;
+}
+
+	
+
+h1 {
+	color: #fff;
+	text-align: center;
+	vertical-align: middle;
+	display: inline-block;
+	max-width: 1000px;
+	font: 500 72px/70px "gibson";
+}
+
+h2 {
+	height: 80px;
+	color: #1a2856;
+	font: 500 45px/45px "gibson";
+	margin: 20px auto 20px auto;
+	position: relative;
+	text-align: center;
+	text-transform: uppercase;
+	display: block;
+}
+
+h2::after {
+	background-color: #edf1f4;
+	bottom: 0;
+	content: '';
+	height: 2px;
+	left: 50%;
+	margin-left: -40px;
+	position: absolute;
+	width: 80px;
+}
+
+
+.banner {
+	position: relative;
+	width: 100%;
+	z-index: 1;
+	text-align: center;
+	background-color: #5dbfd4;
+	clear: both;
+}
+
+.banner.banner--image {
+	background-size: cover;
+	background-position: center center;
+	height: 350px;
+	position: relative;
+	line-height: 350px;
+}
+
+
+@media screen and (min-width: 801px) {
+	/*.embed-responsive{
+		/width: 760px;
+	}*/
+	.showmewhensmall {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 800px) {
+	h1 {
+		font-size: 8vw;
+	}	
+	
+	h2 {
+		font-size: 6vw;
+	}
+	
+	.banner.banner--image {
+		line-height: 44vw;
+		height: 100%;
+	}
+	
+	.hidemewhensmall {
+		display: none;
+	}
+
+	.showmewhensmall {
+		display: block;
+	}	
+}
+
+p {
+	margin: 20px 40px 20px 40px;
+}
+
+
+      
+.formcontainer {
+	background: #ffffff;
+	padding: 15px;
+}
+
+.formcontainer form, .formcontainer fieldset{
+	margin:0;
+}
+
+.authenticator {
+	background: #ffffff;
+	padding: 15px;
+}
+
+.thalestitle {
+	background: white;
+	height: 60px;
+	width: 100%;
+	padding-left: 30px;
+}
+
+#registerContainer, #mainContainer {
+	display: none;
+}
+
+a {
+	color: #5dbfd4;
+}
+
+#errorLogin, #errorRegister {
+	color: #AF002A;
+	font-weight: 400;
+	font-family: gibson;
+	text-align: center;
+}
+
+.button, button, input[type='button'], input[type='reset'], input[type='submit'] {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	background-color: #183a5b;
+	border: 0.1rem solid #183a5b;
+}
+.b-right {
+	border-right: 4px solid #5dbfd4;
+}
+.b-left {
+	border-left: 4px solid #5dbfd4;
+}
+
+
+.link a{
+	color: #5dbfd4;
+	font-size: 20px;
+	font-weight: 400;
+	text-decoration: none;
+	/*
+	letter-spacing: 0.25px;
+	line-height: 61px;
+	font-family: gibson;*/
+}
+
+.log {
+	background-color: #edf1f4;
+	font-size: 14px;
+	border: 1px solid #cfcfcf;
+	line-height: 1.2em;
+}
+
+a:hover, a:visited, a:link, a:active
+{
+	text-decoration: none;
+}

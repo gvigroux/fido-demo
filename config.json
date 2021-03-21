@@ -1,0 +1,5 @@
+{
+    "port": 3002,
+    "_origin": "https://idprimevirtual.demo.gemalto.com",
+    "origin": "http://localhost:3002"
+}

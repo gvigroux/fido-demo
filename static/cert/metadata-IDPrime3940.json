@@ -1,0 +1,53 @@
+{
+  "aaguid": "b50d5e0a-7f81-4959-9b12-f45407407503",
+  "description": "IDPrime 3940 FIDO",
+  "authenticatorVersion": 2,
+  "protocolFamily": "fido2",
+  "upv": [
+    {
+      "major": 1,
+      "minor": 0
+    }
+  ],
+  "assertionScheme": "FIDOV2",
+  "authenticationAlgorithm": 1,
+  "publicKeyAlgAndEncoding": 260,
+  "attestationTypes": [
+    15879
+  ],
+  "userVerificationDetails": [
+    [
+      {
+        "userVerification": 1
+      },
+      {
+        "userVerification": 4,
+        "caDesc": {
+          "base": 256,
+          "minLength": 4,
+          "maxRetries": 8,
+          "blockSlowdown": 0
+        }
+      }
+    ]
+  ],
+  "keyProtection": 10,
+  "matcherProtection": 4,
+  "cryptoStrength": 128,
+  "operatingEnv": "Secure Element (SE)",
+  "attachmentHint": 26,
+  "isSecondFactorOnly": false,
+  "isKeyRestricted": true,
+  "isFreshUserVerificationRequired": true,
+  "tcDisplay": 0,
+  "attestationRootCertificates": [
+    "MIIC6TCCAdGgAwIBAgIJAJbTyru1X/IPMA0GCSqGSIb3DQEBCwUAMCMxITAfBgNVBAMMGEdlbWFsdG8gTXVsdGlBcHAgRklETyBDQTAeFw0xODA2MTIxNDQ1NTBaFw0yODA2MDkxNDQ1NTBaMCMxITAfBgNVBAMMGEdlbWFsdG8gTXVsdGlBcHAgRklETyBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMVjKHWpbD7TSlMxocjTl6nIf7x32PmsQ9zGuLGGqA0UQZoIq3XLzL6LYUvJ5A5g0uyFGllHEfGAKrEaCQ8FVvPS/Uh0FyfzWhRAziTSijjMIIVjjjUv9m9vFmcXScgHig7Odz8858V0krNH99qGm3wjgaOerTWmt+jXCUfn01IkTPwxG2HlgEd45jNLSV7Vool+Ke8E2ki4lEkTeHzboulR5GUbp3nMi7E47VMQa3bNwnzWBbsaBSSQhLk3m5HaKhhxa6wJDK47NiMCkCkdIHuWSQLVAfm85UAONtEOPwi0OuK3qbe8yKOFGf0KhB5MMeAym7MV/M4W0a49ogPD9pMCAwEAAaMgMB4wDAYDVR0TBAUwAwEB/zAOBgNVHQ8BAf8EBAMCAoQwDQYJKoZIhvcNAQELBQADggEBAJWz5xLMk5WNYbAb6yOxECBoZ2WeB/ql4VJ3O/3/tNsxOYnzLeWo540zQh9rAmaxz7eumBlskMq4yGPSNXB9ycWGHgkcCeSzN2wv8CIzDBs2oBZjTNk65LBZDssTOBtMW/+uTFHQfbuO3ISLhI0DXfREi9NDM3jfk11xHcsfh2RMV+QdNfwVaZZrCq+ouG+Evkv7Kqq+oyu0VFM/tz68TGl6ylhPFR1qh9wttpVjAOOCEQCLqP2dP28lwYByCqHQqVHwbujv/LZjZnKW3LYndZixPPSRCJssDDwJvh/f6nTxg9ZE+/JcYre5CaI8nzVHaSOCjNJ7FzULG64JiWOvQ50="
+  ],
+  "icon": "data:image/png;base64,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",
+  "supportedExtensions": [
+    {
+      "id": "hmac-secret",
+      "fail_if_unknown": false
+    }
+  ]
+}

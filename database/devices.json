@@ -1,0 +1,44 @@
+{
+  "devices": [
+    {
+      "aaguid": "b93fd961f2e6462fb12282002247de78",
+      "name": "Android",
+      "image": "unknown.png"
+    },
+    {
+      "aaguid": "01020304050607080102030405060708",
+      "name": "Virtual FIDO2",
+      "image": "unknown.png"
+    },
+    {
+      "aaguid": "efb96b10a9ee4b6ca4a9d32125ccd4a4",
+      "name": "eToken FIDO",
+      "image": "eToken5300.png"
+    },
+    {
+      "aaguid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "name": "Thales R&D Sample",
+      "image": "eToken5300.png"
+    },
+    {
+      "aaguid": "b50d5e0a7f8149599b12f45407407503",
+      "name": "IDPrime 3940 FIDO",
+      "image": "IDPrime3940.png"
+    },
+    {
+      "aaguid": "ece6a476b67e4e798ecbadf6e6d92e87",
+      "name": "IDPrime PIV FIDO",
+      "image": "IDPrime3940.png"
+    },
+    {
+      "aaguid": "ac6f44733de942ce8be5f206b0c52512",
+      "name": "Thales MultiApp FIDO Authenticator V2",
+      "image": "Thales.png"
+    },
+    {
+      "aaguid": "Unknown",
+      "name": "Unknown",
+      "image": "unknown.png"
+    }
+  ]
+}
