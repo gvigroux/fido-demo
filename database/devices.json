@@ -13,12 +13,6 @@
       "display": true
     },
     {
-      "aaguid": "b50d5e0a-7f81-4959-f45407407503",
-      "name": "IDPrime 3940 FIDO",
-      "image": "IDPrime3940.png",
-      "display": true
-    },
-    {
       "aaguid": "ece6a476-b67e-4e79-adf6e6d92e87",
       "name": "IDPrime PIV FIDO",
       "image": "IDPrime3940.png",
@@ -28,18 +22,6 @@
       "aaguid": "ac6f4473-3de9-42ce-f206b0c52512",
       "name": "Thales MultiApp FIDO Authenticator V2",
       "image": "Thales.png",
-      "display": true
-    },
-    {
-      "aaguid": "b50d5e0a-7f81-4959-9b12f45407407503",
-      "name": " IDPrime 3940 FIDO",
-      "image": "IDPrime3940.png",
-      "display": true
-    },
-    {
-      "aaguid": "b50d5e0a-7f81-4959-9b12-f45407407503",
-      "name": " IDPrime 3940 FIDO",
-      "image": "IDPrime3940.png",
       "display": true
     }
   ]

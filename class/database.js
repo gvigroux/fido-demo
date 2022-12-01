@@ -47,6 +47,13 @@ function addDevice(aaguid, name, image) {
     deviceDatabase.write();
 }
 
+function deleteDevice(aaguid) {
+
+    //aaguid = cleanAAGUID(aaguid); 
+    deviceDatabase.get('devices').remove({ aaguid: aaguid }).write();
+    deviceDatabase.write();
+}
+
 function createUser(id, name, displayName, credentialsCount, isAdmin= false)
 {
     let data = {id: id, name: name, displayName: displayName, credentialsCount: credentialsCount, isAdmin: isAdmin};
@@ -124,6 +131,7 @@ module.exports = {  getUserByName,
                     getCredentials, 
                     getDevices, 
                     addDevice, 
+                    deleteDevice,
                     createUser, 
                     createCredential, 
                     save, 

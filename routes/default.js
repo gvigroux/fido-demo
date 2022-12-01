@@ -3,6 +3,9 @@ const utils    = require('../class/webauthn-utils');
 const router   = express.Router();
 const database = require('../class/database');
 const fs       = require('fs');
+const multer   = require('multer');
+const upload   = multer({ storage: multer.memoryStorage() });
+const path     = require('path');
 
 // Login page
 router.get('/', (request, response) => {
@@ -79,6 +82,21 @@ router.get('/devices', (request, response) => {
     response.render('devices', {devices: devices, images: images});
 })
 
+router.post('/deleteDevice', (request, response) => {
+
+    if(!request.body)
+        return response.json({'message': 'Invalid request'})
+          
+    if(!request.body.aaguid)
+        return response.json({'invalidField': 'aaguid'})
+
+    // No specific check on AAGUID, we remove whatever we found
+    database.deleteDevice(request.body.aaguid);
+
+    return response.json({})
+})
+
+
 router.post('/addDevice', (request, response) => {
 
     if(!request.body)
@@ -101,5 +119,26 @@ router.post('/addDevice', (request, response) => {
 
     return response.json({})
 })
+
+
+
+
+router.post('/addImage', upload.single('imageImport'), (request, response) => {
+
+    if(!request.body)
+        return response.json({'message': 'Invalid request'})
+
+    if(!request.file)
+        return response.json({'invalidField': 'imageImport' })
+
+    if (fs.existsSync('static/img/product/' + request.file.originalname))
+        return response.json({'invalidField': 'File already exists' })
+    
+    fs.writeFileSync('static/img/product/' + request.file.originalname, request.file.buffer);
+
+    return response.redirect('/devices');
+})
+
+
 
 module.exports = router;

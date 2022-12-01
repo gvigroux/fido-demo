@@ -18,6 +18,8 @@ block content
               | AAGUID: #{device.aaguid}
               br
               | Image: #{device.image}
+            div(class="col-md-1 my-auto")
+              | <i class="fa-solid fa-trash-can" id="#{device.aaguid}" style="cursor:pointer"></i>
         
 
       br
@@ -50,19 +52,74 @@ block content
 
         button(type="submit", class="btn btn-primary btn-lg mt-4") Add Device
     
+
+      br
+      br
+      hr
+      br
+      br
+      br
+
+      form(id="add-image", method="post", action="addImage", enctype="multipart/form-data")
+        div(class="form-group row" )
+          label(for="imageImport", class="col-sm-6 col-form-label text-start text-md-end") Select image to Import
+          input(type="file" id="imageImport" name="imageImport" class="col-sm-6" accept="image/*")
+        
+        button(type="submit", class="btn btn-primary btn-lg mt-4") import
       
 
   script.
     $( document ).ready(function() {
+
+      $( ".fa-trash-can" ).click(function(event) {
+        let aaguid = event.target.id;
+
+        if (confirm('Are you sure to delete this device?')) {
+          post('deleteDevice', {aaguid})
+            .then((response) => {
+              if(response.invalidField !== undefined) {
+                  $('#'+response.invalidField).addClass("is-invalid")
+                  return;
+              }
+              document.location.href="devices";
+            })
+            .catch((error) => {
+              $("#error").html(error);
+            })
+        } 
+      });
+
+
+
+      /*
+      $('#add-image').submit(function(event) {
+        event.preventDefault();
+        $('#error').empty();
+        let imageImport   = this.imageImport.value;
+        post('addImage', {imageImport})
+          .then((response) => {
+            if(response.invalidField !== undefined) {
+                $('#'+response.invalidField).addClass("is-invalid")
+                return;
+            }
+            document.location.href="devices";
+          })
+          .catch((error) => {
+            $("#error").html(error);
+          })
+      });
+      */
             
+
+
       $('#add-device').submit(function(event) {
         event.preventDefault();
         $('#error').empty();
         //$('#name').addClass("is-invalid");
 
-        let name = this.name.value;
-        let aaguid = this.aaguid.value;
-        let image = this.image.value;
+        let name    = this.name.value;
+        let aaguid  = this.aaguid.value;
+        let image   = this.image.value;
 
         post('addDevice', {name, aaguid, image})
           .then((response) => {
