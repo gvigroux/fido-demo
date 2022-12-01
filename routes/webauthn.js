@@ -24,20 +24,21 @@ router.post('/getMakeCredentialsChallenge', (request, response) => {
     }
     // New user
     else {
-        if(!request.body || !request.body.name || !request.body.displayName)
-            return response.json({'message': 'Missing name field!'})
+        if(!request.body || !request.body.name )
+            return response.json({'invalidField': 'name', 'invalidFieldMessage': 'Missing field'});
     
         // Check if user exist in database
-        if( User.loadFromDatabase(request.body.name) != null ) 
-            return response.json({'message': 'User already exists!'})
+        if( User.exists(request.body.name) ) 
+            return response.json({'invalidField': 'name', 'invalidFieldMessage': 'User already exists'});
         user = new User(request.body.name, request.body.displayName); 
         request.session.user = user;
     }
     
+
     let requireResidentKey = false;
     if( request.body.requireResidentKey === "yes" ) requireResidentKey = true;
     
-    let challengeMakeCred     = utils.generateServerMakeCredRequest(request.body.userVerification, requireResidentKey, user.id, user.name, user.displayName)
+    let challengeMakeCred     = utils.authenticatorMakeCredential(request.body.userVerification, requireResidentKey, user.id, user.name, user.displayName)
     request.session.challenge = challengeMakeCred.challenge;
     request.session.register.credentials_create_parameters = challengeMakeCred;
     response.json(challengeMakeCred)
@@ -65,6 +66,9 @@ router.post('/verifyAttestation', (request, response) => {
         return response.json({'message': 'Origins don\'t match with: ' + clientData.origin})
 
     let result = utils.verifyAuthenticatorAttestationResponse(request.body);
+
+    request.session.register.signatureDetails = result.signatureLog;
+
     if(result.verified) {
         let user = request.session.user;
         User.saveToDatabase(user);
@@ -72,38 +76,61 @@ router.post('/verifyAttestation', (request, response) => {
         request.session.loggedIn = true;
         request.session.register.credentials_create_response = request.body;
         request.session.register.parsedClientData = clientData;
-        request.session.register.relyingPartyResponse = base64url.decode(request.body.response.attestationObject);
+        //request.session.register.relyingPartyResponse = base64url.decode(request.body.response.attestationObject);
+        request.session.register.relyingPartyResponse = result.attestationObject;
         return response.json({/*"clientData": clientData*/})
     }
-    return response.json({'message': 'Can not authenticate signature! [' + result.fmt + "]"})
+    return response.json({'message': 'Can not authenticate signature! [' + result.fmt + "]", signatureDetails: result.signatureLog})
 })
 
 
-
-
+function toHexString(byteArray) {
+    return Array.from(byteArray, function(byte) {
+      return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+    }).join('')
+  }
+  function bufferToHex (buffer) {
+    return [...new Uint8Array (buffer)]
+        .map (b => b.toString (16).padStart (2, "0"))
+        .join ("");
+}
 // ****************************************************************
 // Authentication 1/2: Get navigator.credentials.get() options
 
 router.post('/getPublicKeyCredentialRequestOptions', (request, response) => {
 
     // Reset logs
+    request.session.loggedIn = false;
     request.session.register = {};
     request.session.authenticate = {};
 
     if(!request.body)
         return response.json({'message': 'Invalid request'})
-          
+        
+    let user = {isAdmin: false};
     let authenticators = [];
     // When no Resident Key, we need to specify the authenticator
     if( request.body.requireResidentKey !== "yes" ) {
-        if(!request.body.name)
-            return response.json({'message': 'No user name'})
+        if(!request.body.name || request.body.name.length <= 0)
+            return response.json({'invalidField': 'name', 'invalidFieldMessage': 'Missing field'});
+        user = database.getUserByName(request.body.name);
         authenticators = database.getCredentials(request.body.name);
+
+        // Check if Admin & password
+        if( database.checkAdminPassword(request.body.name, request.body.password) ){
+            request.session.user = user;
+            database.save();
+            request.session.loggedIn = true;
+            request.session.authenticate.clientData = "";
+            request.session.authenticate.assertion_response = "";
+            return response.json({user: user, loggedIn: request.session.loggedIn});
+        }
     }
 
-    let assertion    = utils.generateServerGetAssertion(request.body.userVerification, authenticators)
+
+    let assertion    = utils.authenticatorGetAssertion(request.body.userVerification, authenticators)
     request.session.authenticate.assertion = assertion;
-    return response.json(assertion)
+    return response.json({user: user, assertion: assertion, loggedIn: request.session.loggedIn});
 })
 
 

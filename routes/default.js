@@ -2,17 +2,34 @@ const express  = require('express');
 const utils    = require('../class/webauthn-utils');
 const router   = express.Router();
 const database = require('../class/database');
-
+const fs       = require('fs');
 
 // Login page
 router.get('/', (request, response) => {
-    response.render('index');
+    response.render('login');
 })
 
 // Register new token page
 router.get('/register', (request, response) => {
+
+    /*
+    let log = { 
+        // Register
+        credentials_create_parameters: JSON.stringify(request.session.register.credentials_create_parameters,null,2),
+        credentials_create_response: JSON.stringify(request.session.register.credentials_create_response,null,2),
+        parsedClientData: JSON.stringify(request.session.register.parsedClientData,null,2),
+        relyingPartyResponse: JSON.stringify(request.session.register.relyingPartyResponse,null,2),
+        signatureDetails: JSON.stringify(request.session.register.signatureDetails,null,2)
+    }*/
+
     response.render('register');
 })
+
+// Contact
+router.get('/contact', (request, response) => {
+    response.render('contact');
+})
+
 
 // Main page with tokens described
 router.get('/main', (request, response) => {
@@ -20,11 +37,14 @@ router.get('/main', (request, response) => {
         return response.redirect('/');
 
     let logType = 0;
-    /*
+
     if( request.session.authenticate.clientData !== undefined )
         logType = 1;
     else if( request.session.register.credentials_create_parameters !== undefined )
-        logType = 2;*/
+        logType = 2;
+
+    // Remove logs
+    logType = 0;
 
     let log = { // Authenticate
                 clientData: JSON.stringify(request.session.authenticate.clientData,null,2), 
@@ -34,8 +54,10 @@ router.get('/main', (request, response) => {
                 credentials_create_parameters: JSON.stringify(request.session.register.credentials_create_parameters,null,2),
                 credentials_create_response: JSON.stringify(request.session.register.credentials_create_response,null,2),
                 parsedClientData: JSON.stringify(request.session.register.parsedClientData,null,2),
-                //relyingPartyResponse: JSON.stringify(request.session.register.relyingPartyResponse,null,2)
-                relyingPartyResponse: request.session.register.relyingPartyResponse
+                relyingPartyResponse: JSON.stringify(request.session.register.relyingPartyResponse,null,2),
+                signatureDetails: JSON.stringify(request.session.register.signatureDetails,null,2)
+
+                //relyingPartyResponse: request.session.register.relyingPartyResponse
             }
 
     user = request.session.user;
@@ -50,5 +72,34 @@ router.get('/logout', (request, response) => {
     response.redirect("/");
 })
 
+// Login page
+router.get('/devices', (request, response) => {
+    devices = database.getDevices();
+    images = fs.readdirSync(__dirname + "/../static/img/product/");
+    response.render('devices', {devices: devices, images: images});
+})
+
+router.post('/addDevice', (request, response) => {
+
+    if(!request.body)
+        return response.json({'message': 'Invalid request'})
+    
+    if(!request.body.name)
+        return response.json({'invalidField': 'name'})
+            
+    if(!request.body.aaguid)
+        return response.json({'invalidField': 'aaguid'})
+
+    if( !database.isAAGUIDValid(request.body.aaguid) )
+        return response.json({'invalidField': 'aaguid'})
+
+    if(!request.body.image)
+        return response.json({'invalidField': 'image' })
+
+
+    database.addDevice(request.body.aaguid, request.body.name, request.body.image);
+
+    return response.json({})
+})
 
 module.exports = router;

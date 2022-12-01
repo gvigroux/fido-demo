@@ -52,12 +52,16 @@ body {
 .container {
 	margin-right: auto;
 	margin-left: auto;
-	max-width: 950px;
+	max-width: 1000px;
 	background: white;
 	font-weight: 400;
 	font-size: 20px;
 	line-height: 28px;
 	font-family: gibson;
+	margin-top: 50px;
+	margin-bottom: 50px;
+	padding-bottom: 30px;
+	padding-top: 30px;
 }
 
 .content {
@@ -68,27 +72,88 @@ body {
 	font-family: gibson;
 }
 
-.title {
-	height: 60px;
+.navbar {
 	background: white;
+	margin: 0;
 }
 
-	
+.navbar-toggler{
+	border: 0;
+}	
+
+.navbar-toggler:focus,
+.navbar-toggler:active,
+.navbar-toggler-icon:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.nav-link {
+	color: #21296f;
+}
+
+.banner {
+	position: relative;
+	width: 100%;
+	z-index: 1;
+	text-align: center;
+	background-color: #5dbfd4;
+	clear: both;
+}
+
+.banner.banner--image {
+	background-size: cover;
+	background-position: center center;
+	height: 250px;
+	position: relative;
+	padding-top: 30px;
+}
 
 h1 {
 	color: #fff;
 	text-align: center;
 	vertical-align: middle;
-	display: inline-block;
-	max-width: 1000px;
-	font: 500 72px/70px "gibson";
+	display: table;
+	font: 500 52px/50px "gibson";
+}
+
+.title {
+	padding-top: 30px;
+	font: 500 52px/50px "gibson";
+	padding-bottom: 10px;
+}
+
+.subtitle {
+	padding-top: 20px;
+	font: 300 22px/20px "gibson";
+	padding-top: 10px;
+}
+
+.nav-link i {
+	margin-right: 10px;
+	margin-left: 10px;
+}
+
+div.containerTitle {
+	color: #fff;
+	height: 10em;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+div.containerTitle div {
+	text-align: center;
+}
+div.containerTitle div p {
+	margin: 0 
 }
 
 h2 {
-	height: 80px;
+	height: 60px;
 	color: #1a2856;
 	font: 500 45px/45px "gibson";
-	margin: 20px auto 20px auto;
+	margin: 0px auto 30px auto;
 	position: relative;
 	text-align: center;
 	text-transform: uppercase;
@@ -107,24 +172,6 @@ h2::after {
 }
 
 
-.banner {
-	position: relative;
-	width: 100%;
-	z-index: 1;
-	text-align: center;
-	background-color: #5dbfd4;
-	clear: both;
-}
-
-.banner.banner--image {
-	background-size: cover;
-	background-position: center center;
-	height: 350px;
-	position: relative;
-	line-height: 350px;
-}
-
-
 @media screen and (min-width: 801px) {
 	/*.embed-responsive{
 		/width: 760px;
@@ -140,12 +187,21 @@ h2::after {
 	}	
 	
 	h2 {
-		font-size: 6vw;
+		font-size: 8vw;
 	}
 	
+	/*
 	.banner.banner--image {
-		line-height: 44vw;
-		height: 100%;
+		line-height: 33vw;
+		height: 100%
+	}
+	*/
+
+	.title {
+		font-size: 6vw;
+	}
+	.subtitle {
+		font-size: 2.9vw;
 	}
 	
 	.hidemewhensmall {

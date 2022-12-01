@@ -1,44 +1,46 @@
 {
   "devices": [
     {
-      "aaguid": "b93fd961f2e6462fb12282002247de78",
-      "name": "Android",
-      "image": "unknown.png"
-    },
-    {
-      "aaguid": "01020304050607080102030405060708",
-      "name": "Virtual FIDO2",
-      "image": "unknown.png"
-    },
-    {
-      "aaguid": "efb96b10a9ee4b6ca4a9d32125ccd4a4",
-      "name": "eToken FIDO",
-      "image": "eToken5300.png"
-    },
-    {
-      "aaguid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "name": "Thales R&D Sample",
-      "image": "eToken5300.png"
-    },
-    {
-      "aaguid": "b50d5e0a7f8149599b12f45407407503",
-      "name": "IDPrime 3940 FIDO",
-      "image": "IDPrime3940.png"
-    },
-    {
-      "aaguid": "ece6a476b67e4e798ecbadf6e6d92e87",
-      "name": "IDPrime PIV FIDO",
-      "image": "IDPrime3940.png"
-    },
-    {
-      "aaguid": "ac6f44733de942ce8be5f206b0c52512",
-      "name": "Thales MultiApp FIDO Authenticator V2",
-      "image": "Thales.png"
-    },
-    {
       "aaguid": "Unknown",
       "name": "Unknown",
-      "image": "unknown.png"
+      "image": "unknown.png",
+      "display": false
+    },
+    {
+      "aaguid": "efb96b10-a9ee-4b6c-d32125ccd4a4",
+      "name": "eToken FIDO",
+      "image": "eTokenFIDO.png",
+      "display": true
+    },
+    {
+      "aaguid": "b50d5e0a-7f81-4959-f45407407503",
+      "name": "IDPrime 3940 FIDO",
+      "image": "IDPrime3940.png",
+      "display": true
+    },
+    {
+      "aaguid": "ece6a476-b67e-4e79-adf6e6d92e87",
+      "name": "IDPrime PIV FIDO",
+      "image": "IDPrime3940.png",
+      "display": true
+    },
+    {
+      "aaguid": "ac6f4473-3de9-42ce-f206b0c52512",
+      "name": "Thales MultiApp FIDO Authenticator V2",
+      "image": "Thales.png",
+      "display": true
+    },
+    {
+      "aaguid": "b50d5e0a-7f81-4959-9b12f45407407503",
+      "name": " IDPrime 3940 FIDO",
+      "image": "IDPrime3940.png",
+      "display": true
+    },
+    {
+      "aaguid": "b50d5e0a-7f81-4959-9b12-f45407407503",
+      "name": " IDPrime 3940 FIDO",
+      "image": "IDPrime3940.png",
+      "display": true
     }
   ]
 }

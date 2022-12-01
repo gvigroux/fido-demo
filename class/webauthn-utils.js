@@ -45,7 +45,7 @@ let randomBase64URLBuffer = (len) => {
  * @param  {String} id             - user's base64url encoded id
  * @return {MakePublicKeyCredentialOptions} - server encoded make credentials request
  */
-let generateServerMakeCredRequest = (userVerification, requireResidentKey, id, username, displayName) => {
+let authenticatorMakeCredential  = (userVerification, requireResidentKey, id, username, displayName) => {
     if( userVerification == null) userVerification = userVerificationDefault;
     return {
         attestation: 'direct',
@@ -56,14 +56,19 @@ let generateServerMakeCredRequest = (userVerification, requireResidentKey, id, u
         challenge: randomBase64URLBuffer(32),
         pubKeyCredParams: [
             {
-                type: "public-key", alg: -7 // "ES256" IANA COSE Algorithms registry
+              type: "public-key",
+              alg: -7 // "ES256" as registered in the IANA COSE Algorithms registry
+            },
+            {
+              type: "public-key",
+              alg: -257 // Value registered by this specification for "RS256"
             }
-        ],
+          ],
         rp: {
             //id: "fido.demo.gemalto.com",
             name: "Thales FIDO Demo"
         },
-        timeout: 90000,
+        timeout: 120000,
         user: {
             id: id,
             name: username,
@@ -77,7 +82,7 @@ let generateServerMakeCredRequest = (userVerification, requireResidentKey, id, u
  * @param  {Array} authenticators              - list of registered authenticators
  * @return {PublicKeyCredentialRequestOptions} - server encoded get assertion request
  */
-let generateServerGetAssertion = (userVerification, authenticators) => {
+let authenticatorGetAssertion = (userVerification, authenticators) => {
     if( userVerification == null) userVerification = userVerificationDefault;
 
     let allowCredentials = [];
@@ -90,7 +95,7 @@ let generateServerGetAssertion = (userVerification, authenticators) => {
     }
     return {
         challenge: randomBase64URLBuffer(32)
-        ,timeout: 60000
+        ,timeout: 120000
         ,allowCredentials: allowCredentials
         ,userVerification: userVerification
     }
@@ -219,22 +224,9 @@ let parseMakeCredAuthData = (buffer) => {
 
 let verifyAuthenticatorAttestationResponse = (webAuthnResponse) => {
     console.log("verifyAuthenticatorAttestationResponse");
+    
     let attestationBuffer    = base64url.toBuffer(webAuthnResponse.response.attestationObject);
     let attestationObject    = cbor.decodeAllSync(attestationBuffer)[0];
-
-    /*
-    let details = " type: self";
-    let attestationType = "self";
-    if( ctapMakeCredResp.attStmt !== undefined && ctapMakeCredResp.attStmt.x5c !== undefined) {
-        details += " type: AttCA with X5C length: " + ctapMakeCredResp.attStmt.x5c.length;
-        attestationType = "AttCA";
-    }
-    if( ctapMakeCredResp.attStmt !== undefined && ctapMakeCredResp.attStmt.ecdaaKeyId !== undefined) {
-        details += " type: ECDAA";
-        attestationType = "ECDAA";
-    }
-    console.log("Attestation received: " + ctapMakeCredResp.fmt + " " + details);
-    */
 
     console.log("Attestation received: " + attestationObject.fmt);
 
@@ -244,166 +236,12 @@ let verifyAuthenticatorAttestationResponse = (webAuthnResponse) => {
 
     let response = {'verified': false, 'fmt': attestationObject.fmt, 'message': "" , 'log' : '', attestationObject: attestationObject };
 
-    if(attestationObject.fmt === 'fido-u2f') {
-
+    if(attestationObject.fmt === 'fido-u2f')
         response = u2fAttestation(attestationObject, clientDataHash);
-
-        /*
-        if(!(attestationObject.authData.flags & U2F_USER_PRESENTED))
-            throw new Error('User was NOT presented durring authentication!');
-
-        let reservedByte    = Buffer.from([0x00]);
-        let publicKey       = COSEECDHAtoPKCS(attestationObject.authData.COSEPublicKey)
-        let signatureBase   = Buffer.concat([reservedByte, attestationObject.authData.rpIdHash, clientDataHash, attestationObject.authData.credID, publicKey]);
-
-        let PEMCertificate = ASN1toPEM(attestationObject.attStmt.x5c[0]);
-        let signature      = attestationObject.attStmt.sig;
-
-        
-        // console.log(PEMCertificate);
-        // console.log(ctapMakeCredResp.attStmt.sig.length);
-        // console.log(signature.toString("hex"));
-        // console.log(hash(signature).toString("hex"));   
-        // console.log(ctapMakeCredResp.attStmt.sig.length - 70);
-        // let signature = Buffer.allocUnsafe(70);
-        // ctapMakeCredResp.attStmt.sig.copy(signature,0, ctapMakeCredResp.attStmt.sig.length - 70)
-        
-
-        
-        let maxTrailingZero = 0;
-        for(let i = 0; i < signature.length ; i++) {
-            if( signature.readInt8(i) === 0)
-                maxTrailingZero = i + 1;
-            else 
-                break;
-        }
-
-        if( maxTrailingZero > 0) {
-            console.log("WARNING - I modifiy the length");
-            signature = signature.slice(maxTrailingZero);
-        }
-
-
-        console.log(signature.length);
-        console.log(signature);
-
-        
-        // console.log(signature);
-        // console.log(signatureBase);
-        // console.log(base64url.decode(webAuthnResponse.response.clientDataJSON));
-        // console.log(hash(signatureBase).toString("hex"));
-
-        // Save cert
-        let filename = saveCertificate(PEMCertificate);
-
-
-        response.verified = verifySignature(signature, signatureBase, PEMCertificate);
-        if( !response.verified ) {
-            console.log("Invalid Signature");
-        }
-        
-        // Try to detect device
-        let cert = Certificate.fromPEM(PEMCertificate);
-        let aaguid = '';
-
-        // The certificate should contain the product ID in this OID
-        for(let i = 0 ; i < cert.extensions.length ; i ++) {
-            if( cert.extensions[i].oid === "1.3.6.1.4.1.45724.1.1.4") {
-                aaguid = cert.extensions[i].value.slice(2);
-                break;
-            }   
-        }
-
-        // Try to get the first OID
-        if( aaguid.length <= 0 ) {
-            for(let i = 0 ; i < cert.extensions.length ; i ++) {
-                // Transport OID "1.3.6.1.4.1.45724.2.1.1"
-                if( cert.extensions[i].oid.indexOf("1.3.6.1.4.1.") == 0 && cert.extensions[i].oid.indexOf("1.3.6.1.4.1.45724.2.1.1") !== 0 ) {
-                    aaguid = cert.extensions[i].value;
-                    break;
-                }    
-            }
-        }
-
-
-        if(response.verified) {
-            console.log("Attestation Verified");
-            response.attestationObject.attStmt.sig = response.attestationObject.attStmt.sig.toString('base64');
-            response.authrInfo = {
-                fmt: 'fido-u2f',
-                aaguid: convertAAGUID(aaguid),
-                publicKey: base64url.encode(publicKey),
-                counter: attestationObject.authData.counter,
-                credID: base64url.encode(attestationObject.authData.credID),
-                cert: filename
-            }
-        }
-        else
-            console.log("Attestation NOT Verified");
-            */
-    } 
-    else if (attestationObject.fmt === 'packed' && attestationObject.attStmt.x5c !== undefined) {        
-        response = packedAttestation(attestationObject, clientDataHash, authDataBuffer);
-
-/*
-        // https://www.w3.org/TR/webauthn/#packed-attestation
-        
-        let authrDataStruct = parseMakeCredAuthData(ctapMakeCredResp.authData);
-
-        let clientDataHash  = hash(base64url.toBuffer(webAuthnResponse.response.clientDataJSON))
-        let publicKey       = COSEECDHAtoPKCS(authrDataStruct.COSEPublicKey)
-
-        // Step 1 - Verify that sig is a valid signature
-        let signatureBase   = Buffer.concat([ctapMakeCredResp.authData, clientDataHash]);
-        let PEMCertificate = ASN1toPEM(ctapMakeCredResp.attStmt.x5c[0]);
-        let signature      = ctapMakeCredResp.attStmt.sig;
-        response.verified = verifySignature(signature, signatureBase, PEMCertificate);
-        if( !response.verified ) response.message = "Invalid Signature";
-
-        // Save cert
-        let filename = "cert/" + crypto.createHash('md5').update(authrDataStruct.credID).digest("hex") + ".crt";
-        fs.writeFileSync( "static/" + filename, PEMCertificate);
-
-        // Step 2 - ???
-
-        // Step 3 - if OID 1.3.6.1.4.1.45724.1.1.4 (id-fido-gen-ce-aaguid) 
-        //          verify that the value of this extension matches the aaguid in authenticatorData.
-        
-        // DEBUG: PEMCertificate = fs.readFileSync("cert/card.crt");
-        //PEMCertificate = fs.readFileSync("cert/ctap_fpvcFk2ZxU8RsZDihqbO23ARBn4sKK_Y0akjna8tAhIt2vfCWgw29_F5KrWFaAb4-PEjYjW_lqPMgccDmwrEVu6CaEQsEaektvPLiig.crt");
-
-        let checkAAGUID = true;
-        if( checkAAGUID )
-        {
-            let cert = Certificate.fromPEM(PEMCertificate);
-            for(let i = 0 ; i < cert.extensions.length ; i ++) {
-                if( cert.extensions[i].oid === "1.3.6.1.4.1.45724.1.1.4") {
-
-                    let certValue = Buffer.from(cert.extensions[i].value, 2);
-                    response.verified = certValue.equals(authrDataStruct.aaguid);
-                    if( !response.verified ) {   
-                        response.message    = "Invalid AAGUID";
-                        response.log        = "Invalid AAGUID [" + JSON.stringify(authrDataStruct.aaguid) + "] [" + JSON.stringify(certValue) + "]";
-                        console.log(response.log);
-                    }
-                    break;
-                }
-            }
-        }
-
-
-        if(response.verified) {
-            response.authrInfo = {
-                fmt: 'packed',
-                aaguid: authrDataStruct.aaguid.toString('hex'),
-                publicKey: base64url.encode(publicKey),
-                counter: authrDataStruct.counter,
-                credID: base64url.encode(authrDataStruct.credID),
-                cert: filename
-            }
-        }
-        */
-    }
+    else if (attestationObject.fmt === 'packed' && attestationObject.attStmt.x5c !== undefined) 
+        response = packedAttestation(attestationObject, clientDataHash, authDataBuffer);    
+    else if (ctapMakeCredResp.fmt === "android-safetynet")
+        response = androidSafetynetAttestation(attestationObject, clientDataHash);
     /*
     else if (ctapMakeCredResp.fmt === "android-key")
     {
@@ -435,53 +273,6 @@ let verifyAuthenticatorAttestationResponse = (webAuthnResponse) => {
         }
     }
     */
-    else if (ctapMakeCredResp.fmt === "android-safetynet")
-    {
-        response = androidSafetynetAttestation(attestationObject, clientDataHash);
-
-        /*
-        let authrDataStruct = parseMakeCredAuthData(ctapMakeCredResp.authData);
-
-        let clientDataHash  = hash(base64url.toBuffer(webAuthnResponse.response.clientDataJSON))
-        let publicKey       = COSEECDHAtoPKCS(authrDataStruct.COSEPublicKey);
-
-        let ver = ctapMakeCredResp.attStmt.ver;
-        let response = ctapMakeCredResp.attStmt.response.toString("utf-8");
-        
-        console.log(ver);
-
-        let jwsArray = response.split(".");
-        if( jwsArray.length )
-
-        let nonce   = Buffer.concat([ctapMakeCredResp.authData, clientDataHash]).toString('base64');
-        */
-
-
-        /*
-        // Step 1 - Verify that sig is a valid signature
-        let signatureBase   = Buffer.concat([ctapMakeCredResp.authData, clientDataHash]);
-        let PEMCertificate  = ASN1toPEM(ctapMakeCredResp.attStmt.x5c[0]);
-        let signature       = ctapMakeCredResp.attStmt.sig;
-        response.verified   = verifySignature(signature, signatureBase, PEMCertificate);
-        if( !response.verified ) response.message = "Invalid Signature";
-
-        // Save cert
-        let filename = "cert/" + crypto.createHash('md5').update(authrDataStruct.credID).digest("hex") + ".crt";
-        fs.writeFileSync( "static/" + filename, PEMCertificate);
-
-
-        if(response.verified) {
-            response.authrInfo = {
-                fmt: ctapMakeCredResp.fmt,
-                aaguid: authrDataStruct.aaguid.toString('hex'),
-                publicKey: base64url.encode(publicKey),
-                counter: authrDataStruct.counter,
-                credID: base64url.encode(authrDataStruct.credID),
-                cert: filename
-            }
-        }
-        */
-    }
     else
     {                
         response.authrInfo = {
@@ -540,15 +331,12 @@ let verifyAuthenticatorAttestationResponse = (webAuthnResponse) => {
     return response
 }
 
-/**
- * save cert
- * @param  {Buffer} data    - certificate Data
- * @return {String}         - filename
- */
 
-let saveCertificate = (data) => {
-    let filename = "cert/" + crypto.createHash('md5').update(data).digest("hex") + ".crt";
-    fs.writeFileSync( "static/" + filename, data);
+function saveCertificate(aaguid, data) {    
+    //let filename = "cert/" + crypto.createHash('md5').update(data).digest("hex") + ".crt";
+    let filename = "aaguid/" + aaguid + ".crt";
+    if(!fs.existsSync("static/"+filename))
+        fs.writeFileSync("static/"+filename, data);
     return filename;
 }
 
@@ -579,9 +367,6 @@ function u2fAttestation(attestationObject, clientDataHash) {
         signature = signature.slice(maxTrailingZero);
     }
 
-    // Save cert
-    let filename = saveCertificate(PEMCertificate);
-
     if( !verifySignature(signature, signatureBase, PEMCertificate) ) {
         console.log("Invalid Signature");
         return {verified: false, message: "Invalid Signature"};
@@ -610,16 +395,21 @@ function u2fAttestation(attestationObject, clientDataHash) {
         }
     }
 
+    // Save cert
+    aaguid  = convertAAGUID(aaguid);
+    let filename = saveCertificate(aaguid, PEMCertificate);
+
 
     console.log("U2F Attestation Verified");
 
     let authrInfo = {
         fmt: 'fido-u2f',
-        aaguid: convertAAGUID(aaguid),
+        aaguid: aaguid,
         publicKey: base64url.encode(publicKey),
         counter: attestationObject.authData.counter,
         credID: base64url.encode(attestationObject.authData.credID),
         cert: filename };
+
 
 
     return {verified: true, authrInfo: authrInfo, message: "OK", attestationObject: attestationObject};
@@ -646,14 +436,18 @@ let packedAttestation = (attestationObject, clientDataHash, authDataBuffer) => {
     let signatureBase  = Buffer.concat([authDataBuffer, clientDataHash]);
     let PEMCertificate = ASN1toPEM(attestationObject.attStmt.x5c[0]);
     let signature      = attestationObject.attStmt.sig;
+
+    let signatureLog   = { data: base64url.encode(signatureBase), PEMCertificate: PEMCertificate, signature: base64url.encode(signature) };
+
+
     if( !verifySignature(signature, signatureBase, PEMCertificate) ) 
     {
         console.log("invalid Signature");
-        return {verified: false, message: "invalid Signature"};
+        return {verified: false, message: "invalid Signature", signatureLog: signatureLog};
     }
 
     // Save cert
-    let filename = saveCertificate(PEMCertificate);
+    //let filename = saveCertificate(PEMCertificate);
 
     // Step 2 - ???
 
@@ -663,27 +457,30 @@ let packedAttestation = (attestationObject, clientDataHash, authDataBuffer) => {
     // DEBUG: PEMCertificate = fs.readFileSync("cert/card.crt");
     //PEMCertificate = fs.readFileSync("cert/ctap_fpvcFk2ZxU8RsZDihqbO23ARBn4sKK_Y0akjna8tAhIt2vfCWgw29_F5KrWFaAb4-PEjYjW_lqPMgccDmwrEVu6CaEQsEaektvPLiig.crt");
 
-    let checkAAGUID = true;
-    if( checkAAGUID )
-    {
-        let cert = Certificate.fromPEM(PEMCertificate);
-        for(let i = 0 ; i < cert.extensions.length ; i ++) {
-            if( cert.extensions[i].oid === "1.3.6.1.4.1.45724.1.1.4") {
 
-                let certValue = cert.extensions[i].value.slice(2);
-                if( !certValue.equals(attestationObject.authData.aaguid)) {
-                    let log = "Invalid AAGUID [" + JSON.stringify(attestationObject.authData.aaguid) + "] [" + JSON.stringify(certValue) + "]";
-                    console.log(log);
-                    return {verified: false, message: "invalid AAGUID", log: log};
-                }
-                break;
+    let cert = Certificate.fromPEM(PEMCertificate);
+    for(let i = 0 ; i < cert.extensions.length ; i ++) {
+        if( cert.extensions[i].oid === "1.3.6.1.4.1.45724.1.1.4") {
+
+            let certValue = cert.extensions[i].value.slice(2);
+            if( !certValue.equals(attestationObject.authData.aaguid)) {
+                let log = "Invalid AAGUID [" + JSON.stringify(attestationObject.authData.aaguid) + "] [" + JSON.stringify(certValue) + "]";
+                console.log(log);
+                return {verified: false, message: "invalid AAGUID", log: log};
             }
+            break;
         }
     }
 
+
+    
+    // Save cert
+    aaguid = convertAAGUID(attestationObject.authData.aaguid);
+    let filename = saveCertificate(aaguid, PEMCertificate);
+
     let authrInfo = {
             fmt: attestationObject.fmt,
-            aaguid: convertAAGUID(attestationObject.authData.aaguid),
+            aaguid: aaguid,
             publicKey: base64url.encode(publicKey),
             counter: attestationObject.authData.counter,
             credID: base64url.encode(attestationObject.authData.credID),
@@ -691,7 +488,7 @@ let packedAttestation = (attestationObject, clientDataHash, authDataBuffer) => {
         };    
         
     console.log("Attestation is valid");
-    return {verified: true, authrInfo: authrInfo, message: "OK", attestationObject: attestationObject};
+    return {verified: true, authrInfo: authrInfo, message: "OK", attestationObject: attestationObject, signatureLog: signatureLog};
 }
 
 
@@ -730,9 +527,6 @@ let androidSafetynetAttestation = (attestationObject, clientDataHash) => {
     let attestation = JSON.parse(base64url.decode(jwsArray[0]));
     let PEMCertificate  = formatPEM(attestation.x5c[0]);
 
-    // Save cert    
-    let filename = saveCertificate(PEMCertificate);
-
     // Compare hostname
     let cert = Certificate.fromPEM(PEMCertificate);
     let hostnameIsValid = false;
@@ -756,9 +550,12 @@ let androidSafetynetAttestation = (attestationObject, clientDataHash) => {
         return {verified: false, message: "invalid ctsProfileMatch"}
 
 
+    let aaguid  = attestationObject.authData.aaguid.toString('hex');
+    let filename = saveCertificate(aaguid, PEMCertificate);
+
     let authrInfo = {
             fmt: attestationObject.fmt,
-            aaguid: attestationObject.authData.aaguid.toString('hex'),
+            aaguid: aaguid,
             publicKey: base64url.encode(publicKey),
             counter: attestationObject.authData.counter,
             credID: base64url.encode(attestationObject.authData.credID),
@@ -833,89 +630,13 @@ let verifyAuthenticatorAssertionResponse = (webAuthnResponse, authenticators) =>
         authr.counter = authrDataStruct.counter
     }
 
-
-
-
-
-
-    /*
-    if(authr.fmt === 'fido-u2f') {
-        let authrDataStruct  = parseGetAssertAuthData(authenticatorData);
-
-        if(!(authrDataStruct.flags & U2F_USER_PRESENTED))
-            throw new Error('User was NOT presented durring authentication!');
-
-        let clientDataHash   = hash(base64url.toBuffer(webAuthnResponse.response.clientDataJSON))
-        let signatureBase    = Buffer.concat([authrDataStruct.rpIdHash, authrDataStruct.flagsBuf, authrDataStruct.counterBuf, clientDataHash]);
-
-        let publicKey = ASN1toPEM(base64url.toBuffer(authr.publicKey));
-        let signature = base64url.toBuffer(webAuthnResponse.response.signature);
-
-        response.verified = verifySignature(signature, signatureBase, publicKey)
-
-        if(response.verified) {
-            if(response.counter <= authr.counter)
-                throw new Error('Authr counter did not increase!');
-
-            authr.counter = authrDataStruct.counter
-        }
-    }
-    else if(authr.fmt === 'packed') {    
-        let authrDataStruct = parseGetAssertAuthData(authenticatorData);
-
-        let clientDataHash  = hash(base64url.toBuffer(webAuthnResponse.response.clientDataJSON))
-        let publicKey = ASN1toPEM(base64url.toBuffer(authr.publicKey));
-        let signature = base64url.toBuffer(webAuthnResponse.response.signature);
-        let signatureBase    = Buffer.concat([authrDataStruct.rpIdHash, authrDataStruct.flagsBuf, authrDataStruct.counterBuf, clientDataHash]);
-
-        // Step 1 - Verify that sig is a valid signature
-        response.verified = verifySignature(signature, signatureBase, publicKey);
-        if( !response.verified ) response.message = "Invalid Signature";
-
-        if(response.verified) {
-            if(response.counter <= authr.counter)
-                throw new Error('Authr counter did not increase!');
-            authr.counter = authrDataStruct.counter
-        }
-    }
-    else if(authr.fmt === 'android-safetynet') {    
-        console.log("login with: " + authr.fmt); 
-        let authrDataStruct = parseGetAssertAuthData(authenticatorData);
-        let clientDataHash  = hash(base64url.toBuffer(webAuthnResponse.response.clientDataJSON));
-
-        
-        let publicKey = ASN1toPEM(base64url.toBuffer(authr.publicKey));
-        let signature = base64url.toBuffer(webAuthnResponse.response.signature);
-        let signatureBase    = Buffer.concat([authrDataStruct.rpIdHash, authrDataStruct.flagsBuf, authrDataStruct.counterBuf, clientDataHash]);
-
-        console.log(publicKey);
-        console.log(signature);
-        console.log(signatureBase);
-
-        // Step 1 - Verify that sig is a valid signature
-        response.verified = verifySignature(signature, signatureBase, publicKey);
-        if( !response.verified ) response.message = "Invalid Signature";
-
-        console.log(authr);
-        console.log(authrDataStruct);
-        console.log(clientDataHash);
-
-        //response.verified = true;
-        if(response.verified) {
-            if(response.counter <= authr.counter)
-                throw new Error('Authr counter did not increase!');
-            authr.counter = authrDataStruct.counter
-        }
-    }*/
-    
-
     return response;
 }
 
 module.exports = {
     randomBase64URLBuffer,
-    generateServerMakeCredRequest,
-    generateServerGetAssertion,
+    authenticatorMakeCredential,
+    authenticatorGetAssertion ,
     verifyAuthenticatorAttestationResponse,
     verifyAuthenticatorAssertionResponse
 }

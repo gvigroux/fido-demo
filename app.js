@@ -2,7 +2,7 @@ const express       = require('express');
 const bodyParser    = require('body-parser');
 //const cookieSession = require('cookie-session');
 //const cookieParser  = require('cookie-parser');
-const session = require('express-session')
+const session       = require('express-session')
 
 
 const urllib        = require('url');
@@ -49,6 +49,7 @@ app.use('/admin', admin)
 
 /* ----- serve static ----- */
 app.use(express.static(path.join(__dirname, 'static')));
+app.use(express.static(path.join(__dirname, 'bower_components')));
 
 
 const port = config.port || 3000;

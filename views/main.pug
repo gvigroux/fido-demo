@@ -1,8 +1,8 @@
 extends layout
 block content
 
-  div(class="container")
-    div(class="container text-center")
+  div(class="container text-center")
+    div(class="row ")
       h2 Welcome 
         span(id="name") !
       div(style="width: 100%; text-align: center")
@@ -11,20 +11,20 @@ block content
       each authenticator in authenticators
         - var image = 'img/product/' + authenticator.deviceImage;
         - var cert = authenticator.cert;
-        div(class="container border m-4")
-          div(class="row")
-            div(class="col-md-4 my-auto")
-              img(src=image)
-            div(class="col-md-7 text-left my-auto")
-              h4 #{authenticator.deviceName}
-              | Type: #{authenticator.fmt}
-              br
-              | AAGUID: #{authenticator.aaguid}
-              br
-              | Counter: #{authenticator.counter}
-            div(class="col-md-1 text-center my-auto  mt-3 pt-3 mb-4 pb-4")
-              a(href=cert)
-                img(src="img/certificate.png", width="50px")
+        div(class="row border mb-4")
+          div(class="col-md-3 col-lg-2 my-auto")
+            img(class="img-fluid", style="max-height: 100px" src=image)
+          div(class="col-md-8 text-start my-auto")
+            h4 #{authenticator.deviceName}
+            | Type: #{authenticator.fmt}
+            br
+            | AAGUID: #{authenticator.aaguid}
+            br
+            | Counter: #{authenticator.counter}
+          div(class="col-md-1 text-center my-auto  mt-3 pt-3 mb-4 pb-4")
+            a(href=cert)
+              img(src="img/certificate.png", width="50px")
+
 
 
       // Hidden button bar (with the register new button)
@@ -40,12 +40,12 @@ block content
       div(class="row mt-3 mb-3")
         div(class="col-sm")
           button(class="btn btn-secondary btn-lg", onclick="location.href='logout';") Logout
-   
+    
 
 
       // Contains LOGS-
       if(logType == 1)
-        div(class="container text-left", id="registration-log") 
+        div(class="container text-start", id="registration-log") 
           div(class="row")     
             | Attestation
           div(class="row log")
@@ -59,7 +59,7 @@ block content
           div(class="row log")
             pre(class="d-flex text-break", style="word-break: break-word", id="clientDataJSON-registration-log") #{log.assertion_response}
       else if(logType == 2)     
-        div(class="container text-left", id="login-log")
+        div(class="container text-start", id="login-log")
           div(class="row")     
             | credentials.create() - Parameters
           div(class="row log")
@@ -72,10 +72,21 @@ block content
             | Parsed Client Data
           div(class="row log")
             pre(class="d-flex text-break", style="word-break: break-word", id="credentials-response-log") #{log.parsedClientData}
-          div(class="row")     
+          div(class="row")
             | Relying Party response
           div(class="row log")
             pre(class="d-flex text-break", style="word-break: break-word", id="relyingPartyResponse-login-log") #{log.relyingPartyResponse}
+          div(class="row")
+            | Signature Details
+          div(class="row log")
+            pre(class="d-flex text-break", style="word-break: break-word", id="relyingPartyResponse-login-log") #{log.signatureDetails}
+  div(class="container")
+    div(class="row")
+      h2 DON’T FORGET TO:
+      a(href="https://cpl.thalesgroup.com/sites/default/files/content/brochures/field_document/2022-08/5-top-reasons-fido2-v8.pdf" target="_blank") Download the Top 5 reasons Choosing FIDO2 devices for Enterprise Authentication
+      a(href="https://cpl.thalesgroup.com/access-management/authenticators/fido-devices" target="_blank") Learn more about Thales FIDO2 devices 
+      a(href="https://cpl.thalesgroup.com/access-management/contact-us" target="_blank") Contact us 
+
   script.
     $( document ).ready(function() {
 
@@ -108,3 +119,6 @@ block content
             })
         })
     });
+
+
+

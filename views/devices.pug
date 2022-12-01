@@ -1,0 +1,79 @@
+extends layout
+block content
+
+  div(class="container text-center")
+    div(class="container ")
+      h2 FIDO Devices 
+
+
+      each device in devices
+        - var image = 'img/product/' + device.image;
+        hr
+        div(class="container")
+          div(class="row")
+            div(class="col-md-4 my-auto")
+              img(class="img-fluid", style="max-height: 100px" src=image)
+            div(class="col text-start my-auto")
+              h4 #{device.name}
+              | AAGUID: #{device.aaguid}
+              br
+              | Image: #{device.image}
+        
+
+      br
+      br
+      hr
+      br
+      br
+      br
+
+      form(id="add-device")
+        div(style="width: 100%; text-align: center")
+          span(id="error" class="text-danger") &nbsp;
+
+        div(class="form-group row" )
+          label(for="name", class="col-sm-2 col-form-label text-start text-md-end") Name
+          div(class="col-sm-8")
+            input(type="text",class="form-control",id="name", required)
+            
+        div(class="form-group row" )
+          label(for="aaguid", class="col-sm-2 col-form-label text-start text-md-end") AAGUID
+          div(class="col-sm-8")
+            input(type="text",class="form-control",id="aaguid", required)
+            
+        div(class="form-group row" )
+          label(for="image", class="col-sm-2 col-form-label text-start text-md-end") Image
+          div(class="col-sm-8")
+            select(class="form-control", id="image")
+              each image in images
+                option(value=image) #{image}
+
+        button(type="submit", class="btn btn-primary btn-lg mt-4") Add Device
+    
+      
+
+  script.
+    $( document ).ready(function() {
+            
+      $('#add-device').submit(function(event) {
+        event.preventDefault();
+        $('#error').empty();
+        //$('#name').addClass("is-invalid");
+
+        let name = this.name.value;
+        let aaguid = this.aaguid.value;
+        let image = this.image.value;
+
+        post('addDevice', {name, aaguid, image})
+          .then((response) => {
+            if(response.invalidField !== undefined) {
+                $('#'+response.invalidField).addClass("is-invalid")
+                return;
+            }
+            document.location.href="devices";
+          })
+          .catch((error) => {
+            $("#error").html(error);
+          })
+        })
+    });

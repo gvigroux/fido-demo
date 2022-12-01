@@ -6,7 +6,10 @@ class User {
     constructor(name, displayName) {
         this.id     = utils.randomBase64URLBuffer();
         this.name   = name;
-        this.displayName = displayName;
+        if( displayName.length == 0)
+            this.displayName = name;
+        else
+            this.displayName = displayName;
         this.credentialsCount = 0;
     }
 
@@ -16,7 +19,11 @@ class User {
 
     static loadFromDatabase(name) {
         return database.getUserByName(name);
-    } 
+    }
+
+    static exists(name) {
+        return (database.getUserByName(name) != null);
+    }
 
 }
 

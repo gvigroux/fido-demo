@@ -1,0 +1,86 @@
+extends layout
+block content   
+  div(class="container text-center")
+    form(id="login")
+      h2 Welcome
+    
+      div(class="form-group row" id="name-field")
+        label(for="name", class="col-md-4 col-form-label text-start text-md-end") Name
+        div(class="col-md-6")
+          input(type="text",class="form-control",id="name", required)
+        div(class="col-md-2")
+      div(class="form-group row" id="password-field" style="display: none")
+        label(for="password", class="col-md-4 col-form-label text-start text-md-end") Password
+        div(class="col-md-6")
+          input(type="password",class="form-control",id="password")
+        div(class="col-md-2")
+      button(type="submit", class="btn btn-primary btn-lg mt-4", id="submit") Login
+      div(style="width: 100%; text-align: center")
+        span(id="error" class="text-danger") &nbsp;
+      a(href="register") Not registered yet? Register Now
+      br
+
+  script.
+ 
+    $( document ).ready(function() {  
+
+      //$('#login').submit(function(event) {
+      $('#submit').on("click",function(){
+
+        // Reset form states
+        event.preventDefault();
+        $('#error').html("&nbsp;");        
+        $('#name').removeClass("is-invalid");
+        $('#name')[0].setCustomValidity("");
+
+        // Check basic input 
+        if( $('#login')[0].checkValidity() == false )
+          return $("#login")[0].reportValidity();
+    
+        let name                = $('#name').val();
+        let userVerification    = $('#userVerification').val();
+        let requireResidentKey  = $('#requireResidentKey').val();
+        var password            = "";
+        
+        if( $('#password').val().length > 0) {
+          password = CryptoJS.SHA256($('#password').val()).toString(CryptoJS.enc.Hex);
+        }
+
+        if( navigator.credentials == null)
+          return $("#error").html(`Your browser in not supported`);
+
+      let user = {};
+        postWebAuthN('getPublicKeyCredentialRequestOptions', {name, userVerification, requireResidentKey, password})
+          .then((response) => {
+            // Save user
+            user = response.user;
+            if( response.loggedIn)
+              document.location.href="main";
+              
+            // Decode base64 id(s)
+            let publicKey = preformatGetAssertReq(response.assertion);
+            return navigator.credentials.get({ publicKey })
+          })
+          .then((response) => {
+            let getAssertionResponse = publicKeyCredentialToJSON(response);
+            return postWebAuthN('verifyAuthenticatorAssertionResponse', getAssertionResponse);
+          })
+          .then((response) => {
+            if( response.message !== undefined) 
+              return $("#error").html(response.message)
+            // Success: redirect to main page
+            document.location.href="main";
+          })
+          .catch((error) => {
+            console.log(error);
+            if( user != null && user.isAdmin )
+              $('#password-field').show();
+            else 
+              $('#password-field').hide();
+            //if (error instanceof DOMException)
+             // return $("#error").html("The operation either timed out or was cancelled");
+            //if( error.message !== undefined )
+            //  return $("#error").html(error.message);
+          })
+      })
+    });

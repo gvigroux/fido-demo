@@ -2,12 +2,16 @@ doctype html
 html
   head
     title= title
-    link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css', integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm", crossorigin="anonymous")
     script(src='https://code.jquery.com/jquery-3.2.1.slim.min.js', integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN", crossorigin="anonymous")
     script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js', integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q", crossorigin="anonymous")
-    script(src='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js', integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl", crossorigin="anonymous")
-    script(src="https://kit.fontawesome.com/aa4b9d2d6a.js", crossorigin="anonymous")
+    script(src="https://kit.fontawesome.com/229b27339a.js", crossorigin="anonymous")
+    
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css', crossorigin="anonymous")
+    script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js', crossorigin="anonymous")
+    
     link(rel='stylesheet', href='css/thales.css')
+    script(src='crypto-js/crypto-js.js')
+
     meta(name="viewport", content="width=device-width, initial-scale=1, shrink-to-fit=yes")
     script.
 
@@ -32,15 +36,25 @@ html
         }
 
         function updateLoginVisibility(){
-            if($('#requireResidentKey').val() == "yes")
+            if($('#requireResidentKey').val() == "yes") {
               $('#name-field').hide();
-            else  
+              $("#name").removeAttr("required");
+            } else {
               $('#name-field').show();
+              $("#name").attr("required", "");
+            }
+              
+            if($('#useDisplayname').val() == "yes")
+              $('#displayName-field').show();
+            else  
+              $('#displayName-field').hide();
         }
+
 
         $( document ).ready(function() {
             $('#userVerification').val(getCookie('uv', 'preferred'));
-            $('#requireResidentKey').val(getCookie('rk', 'yes'));
+            $('#requireResidentKey').val(getCookie('rk', 'no'));
+            $('#useDisplayname').val(getCookie('dn', 'no'));
             updateLoginVisibility();
         });
 
@@ -56,8 +70,14 @@ html
             $('#optionModal').on('hidden.bs.modal', function (e) {        
                 setCookie('uv',$('#userVerification').val(),360);
                 setCookie('rk',$('#requireResidentKey').val(),360);
+                setCookie('dn',$('#useDisplayname').val(),360);
                 updateLoginVisibility();
             })
+
+            $('.navbar-nav>li>a').on('click', function(){
+              $('.navbar-collapse').collapse('hide');
+            });
+
         }
 
         // Build POST parameters for 'fetch'
@@ -69,6 +89,25 @@ html
             const dir = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')) + "/";
             return fetch(dir + 'webauthn/' + path, getPostParameters(body)).then((response) => {
                 return response.json().then((json) => {
+                    if(json.invalidField !== undefined) {
+                        $('#'+json.invalidField).addClass("is-invalid");
+                        $('#'+json.invalidField).get(0).setCustomValidity(json.invalidFieldMessage);
+                        $('#'+json.invalidField).get(0).reportValidity();
+                        throw new Error();
+                    }
+                    if(json.signatureDetails !== undefined) console.log(json.signatureDetails);
+                    
+                    if(json.message !== undefined)
+                        throw new Error(json.message);
+                    return json
+                  });
+              })
+        }
+
+        function post(path, body){
+            const dir = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')) + "/";
+            return fetch(dir + path, getPostParameters(body)).then((response) => {
+                return response.json().then((json) => {
                     if(json.message !== undefined)
                         throw new Error(json.message);
                     return json
@@ -76,55 +115,54 @@ html
               })
         }
   body
-    // Black top bar
-    div(class="row" style="width: 100%; height: 40px; background: black;") 
 
-    // White bar with Thales logo
-    div(class="row thalestitle")
-      div(style="width:200px; margin-top: 11px")
-        svg( viewBox="0 0 1024 121", enable-background="new 0 0 1024 121", style="padding: 6 0 0 0")
-          path(fill="#363C80", d="M1024,88.814c0,16.441-4.788,21.286-17.913,25.236c-14.218,4.298-39.467,6.95-54.497,6.95 c-17.784,0-39.943-1.15-58.851-5.477V96.524h104.327V70.701h-73.841c-22.196,0-30.468-6.092-30.468-27.715V31.695 c0-17.045,5.052-22.194,18.934-25.764C925.651,2.328,948.524,0,963.464,0c18.127,0,39.918,1.408,58.883,5.596V24.61H919.698v21.839 h73.84c22.203,0,30.462,5.973,30.462,27.592V88.814z")
-          path(fill="#363C80", d="M846.059,115.551c-21.623,4.286-43.388,5.448-64.476,5.448c-21.075,0-43.253-1.163-64.877-5.448V5.595 C738.33,1.316,760.236,0,781.324,0c21.082,0,42.595,1.316,64.225,5.596v19.621h-97.703v21.968h63.625v22.81h-63.625v25.949h98.213 V115.551z")
-          path(fill="#363C80", d="M679.416,115.551C660.01,119.85,640.44,121,621.637,121c-18.805,0-38.765-1.15-58.161-5.448V2.739h31.139 v91.749h84.802V115.551z")
-          path(fill="#363C80", d="M526.129,116.246c-10.373,2.972-24.081,4.028-34.286,4.201l-47.955-96.619h-2.678l-47.934,96.619 c-10.233-0.173-22.263-1.229-32.629-4.201L421.369,2.787h43.285L526.129,116.246z")
-          path(fill="#342356", d="M462.868,87.416c0,11.094-9.166,20.102-20.294,20.102c-11.145,0-20.149-9.021-20.149-20.102 c0-11.094,9.03-20.108,20.149-20.108C453.684,67.308,462.868,76.291,462.868,87.416")
-          path(fill="#363C80", d="M323.111,116.372c-9.946,2.85-20.57,3.893-31.151,4.078V71.157h-77.359v49.293 c-10.583-0.185-21.201-1.229-31.136-4.078V4.898c9.935-2.85,20.552-3.893,31.136-4.078v47.564h77.359V0.82 c10.581,0.185,21.198,1.228,31.151,4.078V116.372z")
-          path(fill="#363C80", d="M140.087,25.502H85.454v92.965H54.627V25.502H0V5.658C23.52,1.392,47.149,0.06,70.121,0.06 c22.934,0,46.491,1.332,69.966,5.599V25.502z")
-          path(fill="#363C80", d="M1024,88.814c0,16.441-4.788,21.286-17.913,25.236c-14.218,4.298-39.467,6.95-54.497,6.95 c-17.784,0-39.943-1.15-58.851-5.477V96.524h104.327V70.701h-73.841c-22.196,0-30.468-6.092-30.468-27.715V31.695 c0-17.045,5.052-22.194,18.934-25.764C925.651,2.328,948.524,0,963.464,0c18.127,0,39.918,1.408,58.883,5.596V24.61H919.698v21.839 h73.84c22.203,0,30.462,5.973,30.462,27.592V88.814z")
-          path(fill="#363C80", d="M846.059,115.551c-21.623,4.286-43.388,5.448-64.476,5.448c-21.075,0-43.253-1.163-64.877-5.448V5.595 C738.33,1.316,760.236,0,781.324,0c21.082,0,42.595,1.316,64.225,5.596v19.621h-97.703v21.968h63.625v22.81h-63.625v25.949h98.213 V115.551z")
-          path(fill="#363C80", d="M679.416,115.551C660.01,119.85,640.44,121,621.637,121c-18.805,0-38.765-1.15-58.161-5.448V2.739h31.139 v91.749h84.802V115.551z")
-          path(fill="#363C80", d="M526.129,116.246c-10.373,2.972-24.081,4.028-34.286,4.201l-47.955-96.619h-2.678l-47.934,96.619 c-10.233-0.173-22.263-1.229-32.629-4.201L421.369,2.787h43.285L526.129,116.246z")
-          path(fill="#00B2D7", d="M462.868,87.416c0,11.094-9.166,20.102-20.294,20.102c-11.145,0-20.149-9.021-20.149-20.102 c0-11.094,9.03-20.108,20.149-20.108C453.684,67.308,462.868,76.291,462.868,87.416")
-          path(fill="#363C80", d="M323.111,116.372c-9.946,2.85-20.57,3.893-31.151,4.078V71.157h-77.359v49.293 c-10.583-0.185-21.201-1.229-31.136-4.078V4.898c9.935-2.85,20.552-3.893,31.136-4.078v47.564h77.359V0.82 c10.581,0.185,21.198,1.228,31.151,4.078V116.372z")
-          path(fill="#363C80", d="M140.087,25.502H85.454v92.965H54.627V25.502H0V5.658C23.52,1.392,47.149,0.06,70.121,0.06 c22.934,0,46.491,1.332,69.966,5.599V25.502z")
+    // Navigation Bar with menu
+    nav(class="navbar navbar-light navbar-expand-lg sticky-top")
+      div(class="container-fluid")
+        a(class="navbar-brand" style="margin-left: 20px" href="/") 
+          img(src="/img/thales-logo-building-a-future-we-can-all-trust.svg", width="150px", alt="Thales logo | Building a Future We Can All Trust")
+
+        button(class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarFido" aria-controls="navbarFido" aria-expanded="false" aria-label="Toggle navigation")
+          span(class="navbar-toggler-icon")
+
+        div(class="collapse navbar-collapse" id="navbarFido")
+          ul(class="navbar-nav me-auto mb-2 mb-lg-0")
+            li(class="nav-item d-none")
+              a(class="nav-link", href="/") 
+                i(class="fa-solid fa-box") 
+                | Play demo
+            li(class="nav-item")
+              a(class="nav-link", href="#", id="option-link")
+                i(class="fa-solid fa-gear") 
+                | WebAuthn options 
+            li(class="nav-item")
+              a(class="nav-link" href="ms-settings:signinoptions")
+                i(class="fa-brands fa-windows") 
+                | Security key management 
+            li(class="nav-item")
+              a(class="nav-link" href="https://cpl.thalesgroup.com/access-management/contact-us" target="_blank")
+                i(class="fa-regular fa-envelope") 
+                | Contact us
 
     // Image banner
-    div(class="row",  tyle="width: 100%; height: 350px")
-      div(class="banner banner--image" style="background-image:url(img/DigiSec_Home_Banner_2.jpg)")
-        h1 FIDO2 Demo
+    div(class="row" style="margin-bottom: 50px;")
+      div(class="banner banner--image" style="background-image:url(img/large-banner-default-1400x740.jpg)")
+        div(class="containerTitle")
+          div 
+            p(class="title") Thales FIDO Demo site
+            p(class="subtitle") Test drive your FIDO devices on our demo site
+            p(class="subtitle") Register your fido device and log on to a web service in a few seconds 
 
-
-    div(class="container", style="margin-top: 50px;")
-
-      
-      div(class="row")
-        div(style="width: 100%; text-align: right; margin-top: 20px;")
-          a(class="link", href="#", id="option-link")
-            i(class="fas fa-cog")
-            |  Options
-        block content
-      
-    div(class="container", style="height: 30px")    
-    div(style="height: 50px")
+    block content
 
     // Modal
-    div(class="modal fade",id="optionModal", tabindex="-1", role="dialog", aria-labelledby="optionModalLabel", aria-hidden="true")
-      div(class="modal-dialog", role="document")
+    div(class="modal fade", id="optionModal", tabindex="-1", aria-labelledby="optionModalLabel", aria-hidden="true")
+      div(class="modal-dialog")
         div(class="modal-content")
           div(class="modal-header")
             h5(class="modal-title",id="optionModalLabel") Webauthn options
-            button(type="button", class="close", data-dismiss="modal", aria-label="Close")
-              span(aria-hidden="true") &times;
+            button(type="button", class="btn-close", data-bs-dismiss="modal", aria-label="Close")   
+
           div(class="modal-body")
               div(class="container")
                 div(class="row")
@@ -140,8 +178,14 @@ html
                     select(name="requireResidentKey", id="requireResidentKey")
                       option(value="yes", selected) yes
                       option(value="no") no
+                div(class="row")
+                  div(class="col") Use Display name
+                  div(class="col")
+                    select(name="useDisplayname", id="useDisplayname")
+                      option(value="yes") yes
+                      option(value="no", selected) no
           div(class="modal-footer")
-            button(type="button", class="btn btn-primary", data-dismiss="modal") Close
+            button(type="button", class="btn btn-primary", data-bs-dismiss="modal") Close
     script(src="js/base64url-arraybuffer.js")
     script(src="js/helpers.js")
  

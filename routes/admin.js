@@ -4,13 +4,14 @@ const database  = require('../class/database');
 
 
 router.get('/clear', (request, response) => {
-    let length = Object.keys(database).length || 0;
+  let count = database.DeleteNonAdminUsers();
+/*
    
-    Object.keys(database).forEach(function(key) {
+    Object.keys(users).forEach(function(key) {
         delete database[key];
-      });
+      });*/
 
-    response.json(length + " users removed from the database");
+    response.json(count + " users removed from the database");
 })
 
 router.get('/users', (request, response) => {
@@ -22,6 +23,10 @@ router.get('/users', (request, response) => {
       });
 
     response.json(text);
+})
+
+router.get('/devices', (request, response) => {
+  response.json(database.getDevices());
 })
 
 module.exports = router;
