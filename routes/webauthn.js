@@ -33,12 +33,8 @@ router.post('/getMakeCredentialsChallenge', (request, response) => {
         user = new User(request.body.name, request.body.displayName); 
         request.session.user = user;
     }
-    
 
-    let requireResidentKey = false;
-    if( request.body.requireResidentKey === "yes" ) requireResidentKey = true;
-    
-    let challengeMakeCred     = utils.authenticatorMakeCredential(request.body.userVerification, requireResidentKey, user.id, user.name, user.displayName)
+    let challengeMakeCred     = utils.authenticatorMakeCredential(request.body.userVerification,   request.body.discoverableCredential, request.body.authenticatorAttachment, user.id, user.name, user.displayName)
     request.session.challenge = challengeMakeCred.challenge;
     request.session.register.credentials_create_parameters = challengeMakeCred;
     response.json(challengeMakeCred)
@@ -72,7 +68,7 @@ router.post('/verifyAttestation', (request, response) => {
     if(result.verified) {
         let user = request.session.user;
         User.saveToDatabase(user);
-        database.createCredential(result.authrInfo.credID, user.name, result.authrInfo);            
+        database.createCredential(result.authrInfo.credID, user, result.authrInfo);            
         request.session.loggedIn = true;
         request.session.register.credentials_create_response = request.body;
         request.session.register.parsedClientData = clientData;
@@ -80,10 +76,15 @@ router.post('/verifyAttestation', (request, response) => {
         request.session.register.relyingPartyResponse = result.attestationObject;
         return response.json({/*"clientData": clientData*/})
     }
-    return response.json({'message': 'Can not authenticate signature! [' + result.fmt + "]", signatureDetails: result.signatureLog})
+
+    let message =  result.message;
+    if( message.length <= 0 )
+        message = 'Can not authenticate signature! [' + result.fmt + "]";
+
+    return response.json({'message': message, signatureDetails: result.signatureLog})
 })
 
-
+/*
 function toHexString(byteArray) {
     return Array.from(byteArray, function(byte) {
       return ('0' + (byte & 0xFF).toString(16)).slice(-2);
@@ -94,6 +95,8 @@ function toHexString(byteArray) {
         .map (b => b.toString (16).padStart (2, "0"))
         .join ("");
 }
+*/
+
 // ****************************************************************
 // Authentication 1/2: Get navigator.credentials.get() options
 
@@ -113,8 +116,10 @@ router.post('/getPublicKeyCredentialRequestOptions', (request, response) => {
     if( request.body.requireResidentKey !== "yes" ) {
         if(!request.body.name || request.body.name.length <= 0)
             return response.json({'invalidField': 'name', 'invalidFieldMessage': 'Missing field'});
-        user = database.getUserByName(request.body.name);
-        authenticators = database.getCredentials(request.body.name);
+        user = database.getUserByName(request.body.name);        
+        if( user == null )
+            return response.json({'invalidField': 'name', 'invalidFieldMessage': 'User did not exists'});
+        authenticators = database.getCredentials(user.id); 
 
         // Check if Admin & password
         if( database.checkAdminPassword(request.body.name, request.body.password) ){
@@ -156,8 +161,8 @@ router.post('/verifyAuthenticatorAssertionResponse', (request, response) => {
 
     let credential = database.getCredential(request.body.id);
     result = utils.verifyAuthenticatorAssertionResponse(request.body, [credential]);
-    if(result.verified) {
-        request.session.user = User.loadFromDatabase(credential.username);
+    if(result.verified) {        
+        request.session.user = database.getUser(credential.userId);
         database.save();
         request.session.loggedIn = true;
         request.session.authenticate.clientData = clientData;

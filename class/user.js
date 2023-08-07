@@ -10,11 +10,10 @@ class User {
             this.displayName = name;
         else
             this.displayName = displayName;
-        this.credentialsCount = 0;
     }
 
     static saveToDatabase(user) {
-        database.createUser(user.id, user.name, user.displayName, user.credentialsCount);
+        database.createUser(user.id, user.name, user.displayName);
     }
 
     static loadFromDatabase(name) {

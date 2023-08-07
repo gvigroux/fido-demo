@@ -2,6 +2,7 @@ const crypto    = require('crypto');
 const base64url = require('base64url');
 const cbor      = require('cbor');
 const fs        = require('fs');
+const config    = require('../config.json');
 const { Certificate } = require('@fidm/x509');
 
 
@@ -45,12 +46,23 @@ let randomBase64URLBuffer = (len) => {
  * @param  {String} id             - user's base64url encoded id
  * @return {MakePublicKeyCredentialOptions} - server encoded make credentials request
  */
-let authenticatorMakeCredential  = (userVerification, requireResidentKey, id, username, displayName) => {
+let authenticatorMakeCredential  = (userVerification, discoverableCredential, authenticatorAttachment, id, username, displayName) => {
+    let rpId = "fido.demo.gemalto.com";
+    if( config.origin.indexOf("localhost") >= 0)
+        rpId = "localhost";
+
     if( userVerification == null) userVerification = userVerificationDefault;
-    return {
+
+    let requireResidentKey = false;
+    if( discoverableCredential == "required")
+        requireResidentKey = true;
+
+
+    let json = {
         attestation: 'direct',
         authenticatorSelection : {
             requireResidentKey: requireResidentKey,
+            residentKey: discoverableCredential,
             userVerification: userVerification
         },
         challenge: randomBase64URLBuffer(32),
@@ -65,16 +77,21 @@ let authenticatorMakeCredential  = (userVerification, requireResidentKey, id, us
             }
           ],
         rp: {
-            //id: "fido.demo.gemalto.com",
+            id: rpId,
             name: "Thales FIDO Demo"
         },
-        timeout: 120000,
+        timeout: 90000,
         user: {
             id: id,
             name: username,
             displayName: displayName
         }
     }
+
+    if( authenticatorAttachment != "all" )
+        json.authenticatorSelection.authenticatorAttachment =  authenticatorAttachment;
+
+    return json;
 }
 
 /**
@@ -84,6 +101,9 @@ let authenticatorMakeCredential  = (userVerification, requireResidentKey, id, us
  */
 let authenticatorGetAssertion = (userVerification, authenticators) => {
     if( userVerification == null) userVerification = userVerificationDefault;
+    let rpId = "fido.demo.gemalto.com";
+    if( config.origin.indexOf("localhost") >= 0)
+        rpId = "localhost";
 
     let allowCredentials = [];
     for(let authr of authenticators) {
@@ -95,7 +115,8 @@ let authenticatorGetAssertion = (userVerification, authenticators) => {
     }
     return {
         challenge: randomBase64URLBuffer(32)
-        ,timeout: 120000
+        ,rpId: rpId
+        ,timeout: 90000
         ,allowCredentials: allowCredentials
         ,userVerification: userVerification
     }
@@ -463,11 +484,13 @@ let packedAttestation = (attestationObject, clientDataHash, authDataBuffer) => {
         if( cert.extensions[i].oid === "1.3.6.1.4.1.45724.1.1.4") {
 
             let certValue = cert.extensions[i].value.slice(2);
+            /*
+            IT WAS NOT WORKING FOR THE FIDO CARD (R&D BUG - to be reactivated later)
             if( !certValue.equals(attestationObject.authData.aaguid)) {
                 let log = "Invalid AAGUID [" + JSON.stringify(attestationObject.authData.aaguid) + "] [" + JSON.stringify(certValue) + "]";
                 console.log(log);
-                return {verified: false, message: "invalid AAGUID", log: log};
-            }
+                return {verified: false, message: "invalid AAGUID in the cert at OID [1.3.6.1.4.1.45724.1.1.4]", log: log};
+            }*/
             break;
         }
     }

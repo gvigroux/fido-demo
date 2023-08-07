@@ -54,9 +54,9 @@ function deleteDevice(aaguid) {
     deviceDatabase.write();
 }
 
-function createUser(id, name, displayName, credentialsCount, isAdmin= false)
+function createUser(id, name, displayName, isAdmin= false)
 {
-    let data = {id: id, name: name, displayName: displayName, credentialsCount: credentialsCount, isAdmin: isAdmin};
+    let data = {id: id, name: name, displayName: displayName, isAdmin: isAdmin};
     userDatabase.get('users').push(data).write()
     return data;
 }
@@ -72,6 +72,18 @@ function checkAdminPassword(name, password){
     return false;
 }
 
+
+function getUser(id)
+{
+    let user = userDatabase.get('users').find({ id: id }).value();
+    if( user == undefined )
+        return null;
+
+    delete user["password"];
+    return user;
+}
+
+
 function getUserByName(name)
 {
     let user = userDatabase.get('users').find({ name: name }).value();
@@ -79,28 +91,39 @@ function getUserByName(name)
         return null;
 
     delete user["password"];
-    delete user["credentialsCount"];
     return user;
 }
+
+
+function getUsers()
+{
+    let users = userDatabase.get('users').value();
+    if( users == undefined )
+        return null;
+
+    return users;
+}
+
 
 function getCredential(id)
 {
     return credDatabase.get('credentials').find({ id: id }).value(); 
 }
 
-function DeleteNonAdminUsers()
+function deleteNonAdminUsers()
 {
     users = userDatabase.get('users').filter({ isAdmin:false }).value();
     let count = users.length;
     users.forEach((user) => {
         userDatabase.get('users').remove({ id: user.id }).write();
+        credDatabase.get('credentials').remove({ userId: user.id }).write();
     });
     return count;
 }
 
-function getCredentials(username)
+function getCredentials(userId)
 {
-    let credentials = credDatabase.get('credentials').filter({ username: username }).value();
+    let credentials = credDatabase.get('credentials').filter({ userId: userId }).value();
     // Clone the array to not modify the database
     let cloneCredentials = [...credentials];
     cloneCredentials.forEach((credential) => {
@@ -113,9 +136,9 @@ function getCredentials(username)
     return cloneCredentials;
 }
 
-function createCredential(id, username, data)
+function createCredential(id, user, data)
 {
-    credDatabase.get('credentials').push({ id: id, username: username, aaguid: data.aaguid, cert: data.cert, counter: data.counter, fmt: data.fmt, publicKey: data.publicKey, credID: data.credID}).write();
+    credDatabase.get('credentials').push({ id: id, userId: user.id, aaguid: data.aaguid, cert: data.cert, counter: data.counter, fmt: data.fmt, publicKey: data.publicKey, credID: data.credID}).write();
     return data;
 }
 
@@ -126,7 +149,9 @@ function save()
 }
 
 
-module.exports = {  getUserByName, 
+module.exports = {  getUserByName,
+                    getUser,
+                    getUsers,
                     getCredential, 
                     getCredentials, 
                     getDevices, 
@@ -137,5 +162,5 @@ module.exports = {  getUserByName,
                     save, 
                     isAAGUIDValid, 
                     cleanAAGUID,
-                    DeleteNonAdminUsers,
+                    deleteNonAdminUsers,
                     checkAdminPassword};

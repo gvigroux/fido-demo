@@ -53,7 +53,8 @@ html
 
         $( document ).ready(function() {
             $('#userVerification').val(getCookie('uv', 'preferred'));
-            $('#requireResidentKey').val(getCookie('rk', 'no'));
+            $('#discoverableCredential').val(getCookie('dc', 'discouraged'));
+            $('#authenticatorAttachment').val(getCookie('aa', 'cross-platform'));            
             $('#useDisplayname').val(getCookie('dn', 'no'));
             updateLoginVisibility();
         });
@@ -68,9 +69,11 @@ html
 
             // Hide or Show login "name" field, depending on "requireResidentKey"
             $('#optionModal').on('hidden.bs.modal', function (e) {        
-                setCookie('uv',$('#userVerification').val(),360);
-                setCookie('rk',$('#requireResidentKey').val(),360);
-                setCookie('dn',$('#useDisplayname').val(),360);
+                setCookie('uv' ,$('#userVerification').val(),360);
+                setCookie('dc' ,$('#discoverableCredential').val(),360);
+                setCookie('aa' ,$('#authenticatorAttachment').val(),360);
+                setCookie('dn' ,$('#useDisplayname').val(),360);
+                
                 updateLoginVisibility();
             })
 
@@ -93,7 +96,7 @@ html
                         $('#'+json.invalidField).addClass("is-invalid");
                         $('#'+json.invalidField).get(0).setCustomValidity(json.invalidFieldMessage);
                         $('#'+json.invalidField).get(0).reportValidity();
-                        throw new Error();
+                        throw new Error("Invalid value provided inside field: " + json.invalidField);
                     }
                     if(json.signatureDetails !== undefined) console.log(json.signatureDetails);
                     
@@ -169,15 +172,23 @@ html
                   div(class="col") User verification
                   div(class="col")
                     select(name="userVerification", id="userVerification")
-                      option(value="preferred", selected) preferred
-                      option(value="required") required
-                      option(value="discouraged") discouraged
+                      option(value="preferred", selected) Preferred
+                      option(value="required") Required
+                      option(value="discouraged") Discouraged
                 div(class="row")
-                  div(class="col") Use resident key
+                  div(class="col") Discoverable Credential
                   div(class="col")
-                    select(name="requireResidentKey", id="requireResidentKey")
-                      option(value="yes", selected) yes
-                      option(value="no") no
+                    select(name="discoverableCredential", id="discoverableCredential")
+                      option(value="preferred") Preferred
+                      option(value="required") Required
+                      option(value="discouraged", selected) Discouraged
+                div(class="row")
+                  div(class="col") Attachment
+                  div(class="col")
+                    select(name="authenticatorAttachment", id="authenticatorAttachment")
+                      option(value="all", selected) All
+                      option(value="cross-platform") Cross-Platform
+                      option(value="platform") Platform
                 div(class="row")
                   div(class="col") Use Display name
                   div(class="col")

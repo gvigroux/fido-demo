@@ -66,13 +66,14 @@ block content
         //let displayName         = this.displayName.value;
         let name                = $('#name').val();
         let displayName         = $('#displayName').val();
-        let userVerification    = $('#userVerification').val();
-        let requireResidentKey  = $('#requireResidentKey').val();
+        let userVerification        = $('#userVerification').val();
+        let discoverableCredential  = $('#discoverableCredential').val();
+        let authenticatorAttachment = $('#authenticatorAttachment').val();
 
         if( navigator.credentials == null)
           return $("#error").html(`Your browser in not supported`);
       
-        postWebAuthN('getMakeCredentialsChallenge', {name, displayName, userVerification, requireResidentKey})
+        postWebAuthN('getMakeCredentialsChallenge', {name, displayName, userVerification, discoverableCredential, authenticatorAttachment})
           .then((response) => {
             // Receive 'credentials create' options
             let publicKey = preformatMakeCredReq(response);

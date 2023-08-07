@@ -64,15 +64,16 @@ router.get('/main', (request, response) => {
             }
 
     user = request.session.user;
-    authenticators = database.getCredentials(user.name);
+    authenticators = database.getCredentials(user.id);
     response.render('main', {name : user.displayName, authenticators: authenticators, log: log, logType: logType});
 })
 
 //Logs user out
 router.get('/logout', (request, response) => {
+    user = request.session.user;
     request.session.loggedIn = false;
-    request.session.username = undefined;
-    response.redirect("/");
+    request.session.user = undefined;
+    response.redirect("/?user=" + user.name);
 })
 
 // Login page

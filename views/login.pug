@@ -22,18 +22,25 @@ block content
 
   script.
  
-    $( document ).ready(function() {  
+    $( document ).ready(function() {
 
-      //$('#login').submit(function(event) {
+      $('#name').on('input',function(e){
+        history.pushState(null, '', window.location.pathname + '?' + "user=" + $('#name').val());
+      });
+
+      // Use URL parameter "user" if exists
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+      $('#name').val(urlParams.get('user'));
+
       $('#submit').on("click",function(){
-
         // Reset form states
         event.preventDefault();
-        $('#error').html("&nbsp;");        
+        $('#error').html("&nbsp;");
         $('#name').removeClass("is-invalid");
         $('#name')[0].setCustomValidity("");
 
-        // Check basic input 
+        // Check basic input
         if( $('#login')[0].checkValidity() == false )
           return $("#login")[0].reportValidity();
     
@@ -47,18 +54,19 @@ block content
         }
 
         if( navigator.credentials == null)
-          return $("#error").html(`Your browser in not supported`);
+          return $("#error").html(`Your browser is not supported`);
 
       let user = {};
         postWebAuthN('getPublicKeyCredentialRequestOptions', {name, userVerification, requireResidentKey, password})
           .then((response) => {
             // Save user
             user = response.user;
-            if( response.loggedIn)
+            if(response.loggedIn)
               document.location.href="main";
-              
+
             // Decode base64 id(s)
             let publicKey = preformatGetAssertReq(response.assertion);
+            console.log(publicKey);
             return navigator.credentials.get({ publicKey })
           })
           .then((response) => {
@@ -77,10 +85,6 @@ block content
               $('#password-field').show();
             else 
               $('#password-field').hide();
-            //if (error instanceof DOMException)
-             // return $("#error").html("The operation either timed out or was cancelled");
-            //if( error.message !== undefined )
-            //  return $("#error").html(error.message);
           })
       })
     });

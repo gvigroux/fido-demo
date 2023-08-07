@@ -4,7 +4,7 @@ const database  = require('../class/database');
 
 
 router.get('/clear', (request, response) => {
-  let count = database.DeleteNonAdminUsers();
+  let count = database.deleteNonAdminUsers();
 /*
    
     Object.keys(users).forEach(function(key) {
@@ -15,13 +15,8 @@ router.get('/clear', (request, response) => {
 })
 
 router.get('/users', (request, response) => {
-    let length = Object.keys(database).length || 0;
-   
-    let text = "";
-    Object.keys(database).forEach(function(key) {
-        text += key + " with " + database[key].authenticators.length + " autenticators.";
-      });
-
+  let users = database.getUsers();
+  let text = users.length + " Users registered.";
     response.json(text);
 })
 

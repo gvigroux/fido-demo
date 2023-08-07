@@ -7,21 +7,87 @@
       "display": false
     },
     {
-      "aaguid": "efb96b10-a9ee-4b6c-d32125ccd4a4",
+      "aaguid": "b50d5e0a-7f81-4959-9b12-f45407407503",
+      "name": " IDPrime 3940 FIDO",
+      "image": "IDPrime3940.png",
+      "display": true
+    },
+    {
+      "aaguid": "d4a825de-5b03-4943-96bb-e4d77ad01b98",
+      "name": "Thales MultiApp FIDO Authenticator V2",
+      "image": "Thales.png",
+      "display": true
+    },
+    {
+      "aaguid": "efb96b10-a9ee-4b6c-a4a9-d32125ccd4a4",
       "name": "eToken FIDO",
       "image": "eTokenFIDO.png",
       "display": true
     },
     {
-      "aaguid": "ece6a476-b67e-4e79-adf6e6d92e87",
-      "name": "IDPrime PIV FIDO",
+      "aaguid": "74820b05-a6c9-40f9-8fb0-9f86aca93998",
+      "name": "eToken Fusion",
+      "image": "eTokenFIDO.png",
+      "display": true
+    },
+    {
+      "aaguid": "23786452-f02d-4344-87ed-aaf703726881",
+      "name": "eToken Fusion CC",
+      "image": "eTokenFIDO.png",
+      "display": true
+    },
+    {
+      "aaguid": "bb09dcac-a997-43d7-b53c-348621bfc6b8",
+      "name": " eToken Fusion NFC CC",
+      "image": "eTokenFIDO.png",
+      "display": true
+    },
+    {
+      "aaguid": "707816cf-d6b2-4a93-92ba-3041eccd2cba",
+      "name": "eToken Fusion NFC",
+      "image": "eTokenFIDO.png",
+      "display": true
+    },
+    {
+      "aaguid": "2194b428-9397-4046-8f39-007a1605a482",
+      "name": "IDPrime 931 FIDO",
       "image": "IDPrime3940.png",
       "display": true
     },
     {
-      "aaguid": "ac6f4473-3de9-42ce-f206b0c52512",
-      "name": "Thales MultiApp FIDO Authenticator V2",
-      "image": "Thales.png",
+      "aaguid": "2ffd6452-01da-471f-821b-ea4bf6c8676a",
+      "name": "IDPrime 941 FIDO",
+      "image": "IDPrime3940.png",
+      "display": true
+    },
+    {
+      "aaguid": "ca4cff1b-5a81-4404-8194-59aabcf1660b",
+      "name": "IDPrime 3930 FIDO",
+      "image": "IDPrime3940.png",
+      "display": true
+    },
+    {
+      "aaguid": "e86addcd-7711-47e5-b42a-c18257b0bf61",
+      "name": "IDCore 3121 FIDO",
+      "image": "IDPrime FIDO.png",
+      "display": true
+    },
+    {
+      "aaguid": "4d41190c-7beb-4a84-8018-adf265a6352d",
+      "name": "SafeNet IDPrime FIDO Bio",
+      "image": "BIOCard.png",
+      "display": true
+    },
+    {
+      "aaguid": "ffa741ba-559d-43ca-8ead-49b2d5a1c4e4",
+      "name": "SafeNet IDPrime FIDO Desfire EV2 ",
+      "image": "IDPrime FIDO.png",
+      "display": true
+    },
+    {
+      "aaguid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "name": " SafeNet IDPrime FIDO Bio",
+      "image": "BIOCard.png",
       "display": true
     }
   ]
