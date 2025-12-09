@@ -43,50 +43,16 @@ block content
     
 
 
-      // Contains LOGS-
-      if(logType == 1)
-        div(class="container text-start", id="registration-log") 
-          div(class="row")     
-            | Attestation
-          div(class="row log")
-            pre(class="d-flex text-break", style="word-break: break-word", id="attestation-log") #{log.clientData}
-          div(class="row")
-            | Assertion
-          div(class="row log")
-            pre(class="d-flex text-break", style="word-break: break-word", id="credential-create-log") #{log.assertion}
-          div(class="row")
-            | Assertion response
-          div(class="row log")
-            pre(class="d-flex text-break", style="word-break: break-word", id="clientDataJSON-registration-log") #{log.assertion_response}
-      else if(logType == 2)     
-        div(class="container text-start", id="login-log")
-          div(class="row")     
-            | credentials.create() - Parameters
-          div(class="row log")
-            pre(class="d-flex text-break", style="word-break: break-word", id="credentials-get-log") #{log.credentials_create_parameters}
-          div(class="row")     
-            | credentials.create() - Reponse
-          div(class="row log")
-            pre(class="d-flex text-break", style="word-break: break-word", id="credentials-response-log") #{log.credentials_create_response}
-          div(class="row")     
-            | Parsed Client Data
-          div(class="row log")
-            pre(class="d-flex text-break", style="word-break: break-word", id="credentials-response-log") #{log.parsedClientData}
-          div(class="row")
-            | Relying Party response
-          div(class="row log")
-            pre(class="d-flex text-break", style="word-break: break-word", id="relyingPartyResponse-login-log") #{log.relyingPartyResponse}
-          div(class="row")
-            | Signature Details
-          div(class="row log")
-            pre(class="d-flex text-break", style="word-break: break-word", id="relyingPartyResponse-login-log") #{log.signatureDetails}
+ 
   div(class="container")
     div(class="row")
       h2 DON’T FORGET TO:
       a(href="https://cpl.thalesgroup.com/sites/default/files/content/brochures/field_document/2022-08/5-top-reasons-fido2-v8.pdf" target="_blank") Download the Top 5 reasons Choosing FIDO2 devices for Enterprise Authentication
       a(href="https://cpl.thalesgroup.com/access-management/authenticators/fido-devices" target="_blank") Learn more about Thales FIDO2 devices 
+      a(href="https://cpl.thalesgroup.com/resources/access-management/5-reasons-consider-fido2-security-keys-infographic " target="_blank") Top 5 Reasons choosing SafeNet eToken Fusion Series
+      a(href="https://cpl.thalesgroup.com/resources/access-management/enterprise-authentication-using-fido2-devices-brochure" target="_blank") FIDO2 Devices for Phishing-resistant Authentication - Brochure 
       a(href="https://cpl.thalesgroup.com/access-management/contact-us" target="_blank") Contact us 
-
+      
   script.
     $( document ).ready(function() {
 

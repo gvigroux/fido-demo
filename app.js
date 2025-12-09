@@ -12,6 +12,7 @@ const config        = require('./config.json');
 const defaultroutes = require('./routes/default');
 const webuathnauth  = require('./routes/webauthn.js');
 const admin         = require('./routes/admin.js');
+const mds           = require('./routes/mds.js');
 
 const app           = express();
 
@@ -45,6 +46,7 @@ app.use(session({
 app.use('/', defaultroutes)
 app.use('/webauthn', webuathnauth)
 app.use('/admin', admin)
+app.use('/mds', mds)
 
 
 /* ----- serve static ----- */

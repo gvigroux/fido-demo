@@ -9,8 +9,8 @@ html
     link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css', crossorigin="anonymous")
     script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js', crossorigin="anonymous")
     
-    link(rel='stylesheet', href='css/thales.css')
-    script(src='crypto-js/crypto-js.js')
+    link(rel='stylesheet', href='/css/thales.css')
+    script(src='/crypto-js/crypto-js.js')
 
     meta(name="viewport", content="width=device-width, initial-scale=1, shrink-to-fit=yes")
     script.
@@ -149,7 +149,7 @@ html
 
     // Image banner
     div(class="row" style="margin-bottom: 50px;")
-      div(class="banner banner--image" style="background-image:url(img/large-banner-default-1400x740.jpg)")
+      div(class="banner banner--image" style="background-image:url(/img/large-banner-default-1400x740.jpg)")
         div(class="containerTitle")
           div 
             p(class="title") Thales FIDO Demo site
@@ -157,6 +157,45 @@ html
             p(class="subtitle") Register your fido device and log on to a web service in a few seconds 
 
     block content
+
+    // LOGS
+    if(logType == 1)
+      div(class="container text-start", id="registration-log") 
+        div(class="row")     
+          | Attestation
+        div(class="row log")
+          pre(class="d-flex text-break", style="word-break: break-word", id="attestation-log") #{log.clientData}
+        div(class="row")
+          | Assertion
+        div(class="row log")
+          pre(class="d-flex text-break", style="word-break: break-word", id="credential-create-log") #{log.assertion}
+        div(class="row")
+          | Assertion response
+        div(class="row log")
+          pre(class="d-flex text-break", style="word-break: break-word", id="clientDataJSON-registration-log") #{log.assertion_response}
+    else if(logType == 2)     
+      div(class="container text-start", id="login-log")
+        div(class="row")     
+          | credentials.create() - Parameters
+        div(class="row log")
+          pre(class="d-flex text-break", style="word-break: break-word", id="credentials-get-log") #{log.credentials_create_parameters}
+        div(class="row")     
+          | credentials.create() - Reponse
+        div(class="row log")
+          pre(class="d-flex text-break", style="word-break: break-word", id="credentials-response-log") #{log.credentials_create_response}
+        div(class="row")     
+          | Parsed Client Data
+        div(class="row log")
+          pre(class="d-flex text-break", style="word-break: break-word", id="credentials-response-log") #{log.parsedClientData}
+        div(class="row")
+          | Relying Party response
+        div(class="row log")
+          pre(class="d-flex text-break", style="word-break: break-word", id="relyingPartyResponse-login-log") #{log.relyingPartyResponse}
+        div(class="row")
+          | Signature Details
+        div(class="row log")
+          pre(class="d-flex text-break", style="word-break: break-word", id="relyingPartyResponse-login-log") #{log.signatureDetails}
+
 
     // Modal
     div(class="modal fade", id="optionModal", tabindex="-1", aria-labelledby="optionModalLabel", aria-hidden="true")
@@ -197,6 +236,6 @@ html
                       option(value="no", selected) no
           div(class="modal-footer")
             button(type="button", class="btn btn-primary", data-bs-dismiss="modal") Close
-    script(src="js/base64url-arraybuffer.js")
-    script(src="js/helpers.js")
+    script(src="/js/base64url-arraybuffer.js")
+    script(src="/js/helpers.js")
  

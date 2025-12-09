@@ -202,19 +202,6 @@ let ASN1toPEM = (pkBuffer) => {
 
   let b64cert = pkBuffer.toString("base64");
   return formatPEM(b64cert, type);
-
-  /*
-    let PEMKey = '';
-    for(let i = 0; i < Math.ceil(b64cert.length / 64); i++) {
-        let start = 64 * i;
-
-        PEMKey += b64cert.substr(start, 64) + '\n';
-    }
-
-    PEMKey = `-----BEGIN ${type}-----\n` + PEMKey + `-----END ${type}-----\n`;
-    
-    return PEMKey
-    */
 };
 
 let formatPEM = (b64cert, type = "CERTIFICATE") => {
@@ -395,8 +382,8 @@ let verifyAuthenticatorAttestationResponse = (webAuthnResponse) => {
 function saveCertificate(aaguid, data) {
   //let filename = "cert/" + crypto.createHash('md5').update(data).digest("hex") + ".crt";
   let filename = "aaguid/" + aaguid + ".crt";
-  if (!fs.existsSync("static/" + filename))
-    fs.writeFileSync("static/" + filename, data);
+  //if (!fs.existsSync("static/" + filename))
+  fs.writeFileSync("static/" + filename, data);
   return filename;
 }
 
@@ -627,7 +614,7 @@ let androidSafetynetAttestation = (attestationObject, clientDataHash) => {
 
   if (nonce != jws.nonce) return { verified: false, message: "invalid nonce" };
 
-  // STEP 3 - Verify ctsProfileMatch = true
+  // STEP 2 - Verify ctsProfileMatch = true
   if (jws.ctsProfileMatch !== true)
     return { verified: false, message: "invalid ctsProfileMatch" };
 

@@ -214,7 +214,7 @@ router.post('/response', (request, response) => {
     // Login response
     else if(webauthnResp.response.authenticatorData !== undefined) {
         let credential = database.getCredential(webauthnResp.id);
-        result = utils.verifyAuthenticatorAssertionResponse(webauthnResp, [credential]);
+        result = utils.(webauthnResp, [credential]);
         if(result.verified)
             request.session.username = credential.username;
             database.save();

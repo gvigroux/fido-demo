@@ -7,7 +7,7 @@ block content
 
 
       each device in devices
-        - var image = 'img/product/' + device.image;
+        - var image = '/img/product/' + device.image;
         hr
         div(class="container")
           div(class="row")
@@ -75,7 +75,7 @@ block content
         let aaguid = event.target.id;
 
         if (confirm('Are you sure to delete this device?')) {
-          post('deleteDevice', {aaguid})
+          post('/deleteDevice', {aaguid})
             .then((response) => {
               if(response.invalidField !== undefined) {
                   $('#'+response.invalidField).addClass("is-invalid")
@@ -121,7 +121,7 @@ block content
         let aaguid  = this.aaguid.value;
         let image   = this.image.value;
 
-        post('addDevice', {name, aaguid, image})
+        post('/addDevice', {name, aaguid, image})
           .then((response) => {
             if(response.invalidField !== undefined) {
                 $('#'+response.invalidField).addClass("is-invalid")

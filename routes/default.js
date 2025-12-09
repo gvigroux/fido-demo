@@ -7,9 +7,68 @@ const multer   = require('multer');
 const upload   = multer({ storage: multer.memoryStorage() });
 const path     = require('path');
 
+
+function getLogs(request) {
+    
+
+    // Remove logs
+    if( request.query.log === undefined)
+        return [0, null];
+
+    let logType = 0;
+
+    if( request.session.authenticate !== undefined ) {
+        logType = 1;
+
+        if( request.session.authenticate.clientData == undefined) 
+            request.session.authenticate.clientData = '';
+
+        let log = { // Authenticate
+            clientData: JSON.stringify(request.session.authenticate.clientData,null,2), 
+            assertion: JSON.stringify(request.session.authenticate.assertion,null,2), 
+            assertion_response: JSON.stringify(request.session.authenticate.assertion_response,null,2) };
+            return [logType, log];
+    }
+    else if( request.session.register !== undefined && request.session.register.credentials_create_parameters !== undefined ) {
+        logType = 2;
+
+        let log = { // Register
+                    credentials_create_parameters: JSON.stringify(request.session.register.credentials_create_parameters,null,2),
+                    credentials_create_response: JSON.stringify(request.session.register.credentials_create_response,null,2),
+                    parsedClientData: JSON.stringify(request.session.register.parsedClientData,null,2),
+                    relyingPartyResponse: JSON.stringify(request.session.register.relyingPartyResponse,null,2),
+                    signatureDetails: JSON.stringify(request.session.register.signatureDetails,null,2) };
+                    return [logType, log];
+
+    }
+    return [0, null]; 
+
+    /*
+    // Remove logs
+    if(( request.query.log === undefined) || ( logType == 0 ))
+        return [0, null]; //logType = 0;
+
+    
+    let log = { // Authenticate
+                clientData: JSON.stringify(request.session.authenticate.clientData,null,2), 
+                assertion: JSON.stringify(request.session.authenticate.assertion,null,2), 
+                assertion_response: JSON.stringify(request.session.authenticate.assertion_response,null,2),
+                // Register
+                credentials_create_parameters: JSON.stringify(request.session.register.credentials_create_parameters,null,2),
+                credentials_create_response: JSON.stringify(request.session.register.credentials_create_response,null,2),
+                parsedClientData: JSON.stringify(request.session.register.parsedClientData,null,2),
+                relyingPartyResponse: JSON.stringify(request.session.register.relyingPartyResponse,null,2),
+                signatureDetails: JSON.stringify(request.session.register.signatureDetails,null,2)
+                //relyingPartyResponse: request.session.register.relyingPartyResponse
+            }
+
+    return [logType, log];*/
+}
+
 // Login page
 router.get('/', (request, response) => {
-    response.render('login');
+    let logs = getLogs(request);
+    response.render('login', {log: logs[1], logType: logs[0]});
 })
 
 // Register new token page
@@ -25,7 +84,8 @@ router.get('/register', (request, response) => {
         signatureDetails: JSON.stringify(request.session.register.signatureDetails,null,2)
     }*/
 
-    response.render('register');
+    let logs = getLogs(request);
+    response.render('register', {log: logs[1], logType: logs[0]});
 })
 
 // Contact
@@ -39,6 +99,7 @@ router.get('/main', (request, response) => {
     if(!request.session.loggedIn)
         return response.redirect('/');
 
+        /*
     let logType = 0;
 
     if( request.session.authenticate.clientData !== undefined )
@@ -47,7 +108,8 @@ router.get('/main', (request, response) => {
         logType = 2;
 
     // Remove logs
-    logType = 0;
+    if( request.query.log === undefined)
+        logType = 0;
 
     let log = { // Authenticate
                 clientData: JSON.stringify(request.session.authenticate.clientData,null,2), 
@@ -61,11 +123,13 @@ router.get('/main', (request, response) => {
                 signatureDetails: JSON.stringify(request.session.register.signatureDetails,null,2)
 
                 //relyingPartyResponse: request.session.register.relyingPartyResponse
-            }
+            }*/
+
+    let logs = getLogs(request);
 
     user = request.session.user;
     authenticators = database.getCredentials(user.id);
-    response.render('main', {name : user.displayName, authenticators: authenticators, log: log, logType: logType});
+    response.render('main', {name : user.displayName, authenticators: authenticators, log: logs[1], logType: logs[0]});
 })
 
 //Logs user out

@@ -1,0 +1,21 @@
+extends layout
+block content
+
+    div(class="container text-center")
+        div(class="container ")
+            h2 FIDO MDS 
+            div(id="test")
+              
+    script.
+        $( document ).ready(function() {         
+            fetch('/mds/get')
+                .then(function(response) {
+                    response.json().then(function (mds) {
+                        
+                        $("#test").html(mds.entries[0].aaguid);
+                    })
+                })
+                .catch(function(error) {
+                    alert(error)
+                });
+        });

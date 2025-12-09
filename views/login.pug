@@ -28,7 +28,10 @@ block content
     $( document ).ready(function() {
 
       $('#name').on('input',function(e){
-        history.pushState(null, '', window.location.pathname + '?' + "user=" + $('#name').val());
+        let params = "?user=" + $('#name').val();
+        if( urlParams.get('log') != null )
+          params += "&log"
+        history.pushState(null, '', window.location.pathname + params);
       });
 
       // Use URL parameter "user" if exists
@@ -80,7 +83,10 @@ block content
             if( response.message !== undefined) 
               return $("#error").html(response.message)
             // Success: redirect to main page
-            document.location.href="main";
+            if( urlParams.get('log') != null )
+              document.location.href="main?log";
+            else
+              document.location.href="main";
           })
           .catch((error) => {
             console.log(error);
