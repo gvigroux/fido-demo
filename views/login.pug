@@ -50,10 +50,10 @@ block content
         if( $('#login')[0].checkValidity() == false )
           return $("#login")[0].reportValidity();
     
-        let name                = $('#name').val();
-        let userVerification    = $('#userVerification').val();
-        let requireResidentKey  = $('#requireResidentKey').val();
-        var password            = "";
+        let name                    = $('#name').val();
+        let userVerification        = $('#userVerification').val();
+        let requireResidentKey      = $('#requireResidentKey').val();
+        var password                = "";
         
         if( $('#password').val().length > 0) {
           password = CryptoJS.SHA256($('#password').val()).toString(CryptoJS.enc.Hex);

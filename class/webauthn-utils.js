@@ -50,7 +50,8 @@ let authenticatorMakeCredential = (
   authenticatorAttachment,
   id,
   username,
-  displayName
+  displayName,
+  body
 ) => {
   let rpId = "fido.demo.gemalto.com";
   if (config.origin.indexOf("localhost") >= 0) rpId = "localhost";
@@ -60,6 +61,11 @@ let authenticatorMakeCredential = (
   let requireResidentKey = false;
   if (discoverableCredential == "required") requireResidentKey = true;
 
+  let extensions = {};
+
+  if (body.useExtensionUcm == "yes") extensions["uvm"] = true;
+  if (body.useExtensionCredProps == "yes") extensions["credProps"] = true;
+
   let json = {
     attestation: "direct",
     authenticatorSelection: {
@@ -67,6 +73,7 @@ let authenticatorMakeCredential = (
       residentKey: discoverableCredential,
       userVerification: userVerification,
     },
+    extensions: extensions,
     challenge: randomBase64URLBuffer(32),
     pubKeyCredParams: [
       {
@@ -264,6 +271,8 @@ let parseMakeCredAuthData = (buffer) => {
 
 let verifyAuthenticatorAttestationResponse = (webAuthnResponse) => {
   console.log("verifyAuthenticatorAttestationResponse");
+
+  //webAuthResponse.clientExtensionResults
 
   let attestationBuffer = base64url.toBuffer(
     webAuthnResponse.response.attestationObject

@@ -70,11 +70,13 @@ block content
         let userVerification        = $('#userVerification').val();
         let discoverableCredential  = $('#discoverableCredential').val();
         let authenticatorAttachment = $('#authenticatorAttachment').val();
+        let useExtensionUcm         = $('#useExtensionUcm').val();
+        let useExtensionCredProps   = $('#useExtensionCredProps').val();
 
         if( navigator.credentials == null)
           return $("#error").html(`Your browser in not supported`);
       
-        postWebAuthN('getMakeCredentialsChallenge', {name, displayName, userVerification, discoverableCredential, authenticatorAttachment})
+        postWebAuthN('getMakeCredentialsChallenge', {name, displayName, userVerification, discoverableCredential, authenticatorAttachment, useExtensionUcm, useExtensionCredProps})
           .then((response) => {
             // Receive 'credentials create' options
             let publicKey = preformatMakeCredReq(response);

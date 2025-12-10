@@ -54,8 +54,10 @@ html
         $( document ).ready(function() {
             $('#userVerification').val(getCookie('uv', 'preferred'));
             $('#discoverableCredential').val(getCookie('dc', 'discouraged'));
-            $('#authenticatorAttachment').val(getCookie('aa', 'cross-platform'));            
+            $('#authenticatorAttachment').val(getCookie('aa', 'cross-platform'));
             $('#useDisplayname').val(getCookie('dn', 'no'));
+            $('#useExtensionUcm').val(getCookie('eu', 'no'));
+            $('#useExtensionCredProps').val(getCookie('ec', 'no'));
             updateLoginVisibility();
         });
 
@@ -73,6 +75,8 @@ html
                 setCookie('dc' ,$('#discoverableCredential').val(),360);
                 setCookie('aa' ,$('#authenticatorAttachment').val(),360);
                 setCookie('dn' ,$('#useDisplayname').val(),360);
+                setCookie('eu' ,$('#useExtensionUcm').val(),360);
+                setCookie('ec' ,$('#useExtensionCredProps').val(),360);
                 
                 updateLoginVisibility();
             })
@@ -206,34 +210,54 @@ html
             button(type="button", class="btn-close", data-bs-dismiss="modal", aria-label="Close")   
 
           div(class="modal-body")
+          
               div(class="container")
-                div(class="row")
-                  div(class="col") User verification
-                  div(class="col")
-                    select(name="userVerification", id="userVerification")
-                      option(value="preferred", selected) Preferred
-                      option(value="required") Required
-                      option(value="discouraged") Discouraged
-                div(class="row")
-                  div(class="col") Discoverable Credential
-                  div(class="col")
-                    select(name="discoverableCredential", id="discoverableCredential")
-                      option(value="preferred") Preferred
-                      option(value="required") Required
-                      option(value="discouraged", selected) Discouraged
-                div(class="row")
-                  div(class="col") Attachment
-                  div(class="col")
-                    select(name="authenticatorAttachment", id="authenticatorAttachment")
-                      option(value="all", selected) All
-                      option(value="cross-platform") Cross-Platform
-                      option(value="platform") Platform
-                div(class="row")
-                  div(class="col") Use Display name
-                  div(class="col")
-                    select(name="useDisplayname", id="useDisplayname")
-                      option(value="yes") yes
-                      option(value="no", selected) no
+                fieldset(class="mb-4")
+                  legend(class="h6") WebAuthn options
+                  div(class="row")
+                    label(class="fs-6 col-7 col-form-label") User verification
+                    div(class="col-5")
+                      select(class="form-select" name="userVerification", id="userVerification")
+                        option(value="preferred", selected) Preferred
+                        option(value="required") Required
+                        option(value="discouraged") Discouraged
+                  div(class="row")
+                    label(class="fs-6 col-7 col-form-label") Discoverable Credential
+                    div(class="col-5")
+                      select(class="form-select" name="discoverableCredential", id="discoverableCredential")
+                        option(value="preferred") Preferred
+                        option(value="required") Required
+                        option(value="discouraged", selected) Discouraged
+                  div(class="row")
+                    label(class="fs-6 col-7 col-form-label") Attachment
+                    div(class="col-5")
+                      select(class="form-select" name="authenticatorAttachment", id="authenticatorAttachment")
+                        option(value="all", selected) All
+                        option(value="cross-platform") Cross-Platform
+                        option(value="platform") Platform
+                  div(class="row")
+                    label(class="fs-6 col-7 col-form-label") Use Display name
+                    div(class="col-5")
+                      select(class="form-select" name="useDisplayname", id="useDisplayname")
+                        option(value="yes") yes
+                        option(value="no", selected) no
+
+                fieldset(class="mb-4")
+                  legend(class="h6") Extensions
+                  div(class="row")
+                    label(class="fs-6 col-7 col-form-label") User Verification Method (uvm)
+                    div(class="col-5")
+                      select(class="form-select" name="useExtensionUcm", id="useExtensionUcm")
+                        option(value="yes") yes
+                        option(value="no", selected) no
+                  div(class="row")
+                    label(class="fs-6 col-7 col-form-label") Credential Properties (credProps)
+                    div(class="col-5")
+                      select(class="form-select" name="useExtensionCredProps", id="useExtensionCredProps")
+                        option(value="yes") yes
+                        option(value="no", selected) no
+
+
           div(class="modal-footer")
             button(type="button", class="btn btn-primary", data-bs-dismiss="modal") Close
     script(src="/js/base64url-arraybuffer.js")

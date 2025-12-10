@@ -25,19 +25,10 @@ block content
             a(href=cert)
               img(src="img/certificate.png", width="50px")
 
-
-
-      // Hidden button bar (with the register new button)
-      div(class="row mt-3 mb-3 d-none")
-        div(class="col-sm")
-        div(class="col-sm")
-          button(class="btn btn-primary btn-lg", id="registerNewButton") Register a new token
-        div(class="col-sm")
-        div(class="col-sm")
-          button(class="btn btn-secondary btn-lg", onclick="location.href='logout';") Logout
-        div(class="col-sm")
       
       div(class="row mt-3 mb-3")
+        div(class="col-sm")
+          button(class="btn btn-primary btn-lg", id="registerNewButton") Register a new token
         div(class="col-sm")
           button(class="btn btn-secondary btn-lg", onclick="location.href='logout';") Logout
     
@@ -61,8 +52,10 @@ block content
           $('#error').empty();
           let userVerification    = $('#userVerification').val();
           let requireResidentKey  = $('#requireResidentKey').val();
+          alert(requireResidentKey)
 
-          postWebAuthN('getMakeCredentialsChallenge', {userVerification, requireResidentKey})
+          //postWebAuthN('getMakeCredentialsChallenge', {userVerification, requireResidentKey})
+          postWebAuthN('getMakeCredentialsChallenge', {})
             .then((response) => {
               // Receive 'credentials create' options
               let publicKey = preformatMakeCredReq(response);

@@ -1,88 +1,113 @@
-const express   = require('express');
-const utils     = require('../class/webauthn-utils');
-const config    = require('../config.json');
-const base64url = require('base64url');
-const User      = require('../class/user');
-const router    = express.Router();
-const database  = require('../class/database');
-
+const express = require("express");
+const utils = require("../class/webauthn-utils");
+const config = require("../config.json");
+const base64url = require("base64url");
+const User = require("../class/user");
+const router = express.Router();
+const database = require("../class/database");
 
 // ****************************************************************
 // Create a user and add a new token
 
-router.post('/getMakeCredentialsChallenge', (request, response) => {
+router.post("/getMakeCredentialsChallenge", (request, response) => {
+  let user = null;
 
-    let user = null;
+  // Reset logs
+  request.session.register = {};
+  request.session.authenticate = {};
 
-    // Reset logs
-    request.session.register = {};
-    request.session.authenticate = {};
+  // TODO
+  if (request.session.loggedIn && request.session.user !== undefined) {
+    user = request.session.user;
+  }
+  // New user
+  else {
+    if (!request.body || !request.body.name)
+      return response.json({
+        invalidField: "name",
+        invalidFieldMessage: "Missing field",
+      });
 
-    // TODO
-    if( request.session.loggedIn && request.session.user !== undefined) {
-        user = request.session.user;
-    }
-    // New user
-    else {
-        if(!request.body || !request.body.name )
-            return response.json({'invalidField': 'name', 'invalidFieldMessage': 'Missing field'});
-    
-        // Check if user exist in database
-        if( User.exists(request.body.name) ) 
-            return response.json({'invalidField': 'name', 'invalidFieldMessage': 'User already exists'});
-        user = new User(request.body.name, request.body.displayName); 
-        request.session.user = user;
-    }
+    // Check if user exist in database
+    if (User.exists(request.body.name))
+      return response.json({
+        invalidField: "name",
+        invalidFieldMessage: "User already exists",
+      });
+    user = new User(request.body.name, request.body.displayName);
+    request.session.user = user;
+  }
 
-    let challengeMakeCred     = utils.authenticatorMakeCredential(request.body.userVerification,   request.body.discoverableCredential, request.body.authenticatorAttachment, user.id, user.name, user.displayName)
-    request.session.challenge = challengeMakeCred.challenge;
-    request.session.register.credentials_create_parameters = challengeMakeCred;
-    response.json(challengeMakeCred)
-})
-
+  let challengeMakeCred = utils.authenticatorMakeCredential(
+    request.body.userVerification,
+    request.body.discoverableCredential,
+    request.body.authenticatorAttachment,
+    user.id,
+    user.name,
+    user.displayName,
+    request.body
+  );
+  request.session.challenge = challengeMakeCred.challenge;
+  request.session.register.credentials_create_parameters = challengeMakeCred;
+  response.json(challengeMakeCred);
+});
 
 // ****************************************************************
 // Called after new registration
 
-router.post('/verifyAttestation', (request, response) => {
+router.post("/verifyAttestation", (request, response) => {
+  if (
+    !request.body ||
+    !request.body.response ||
+    !request.body.type ||
+    request.body.type !== "public-key"
+  )
+    return response.json({
+      message:
+        "Response missing one or more of response/type fields, or type is not public-key!",
+    });
 
-    if(!request.body       || !request.body.response
-    || !request.body.type  || request.body.type !== 'public-key' )
-        return response.json({'message': 'Response missing one or more of response/type fields, or type is not public-key!'})
+  // Format data
+  let clientData = JSON.parse(
+    base64url.decode(request.body.response.clientDataJSON)
+  );
 
-    // Format data
-    let clientData   = JSON.parse(base64url.decode(request.body.response.clientDataJSON));
+  // Check challenge...
+  if (clientData.challenge !== request.session.challenge)
+    return response.json({ message: "Challenges don't match!" });
 
-    // Check challenge...
-    if(clientData.challenge !== request.session.challenge)
-       return response.json({'message': 'Challenges don\'t match!'})
+  // ...and origin
+  if (clientData.origin !== config.origin)
+    return response.json({
+      message: "Origins don't match with: " + clientData.origin,
+    });
 
-    // ...and origin
-    if(clientData.origin !== config.origin)
-        return response.json({'message': 'Origins don\'t match with: ' + clientData.origin})
+  let result = utils.verifyAuthenticatorAttestationResponse(request.body);
 
-    let result = utils.verifyAuthenticatorAttestationResponse(request.body);
+  request.session.register.signatureDetails = result.signatureLog;
 
-    request.session.register.signatureDetails = result.signatureLog;
+  if (result.verified) {
+    let user = request.session.user;
+    User.saveToDatabase(user);
+    database.createCredential(result.authrInfo.credID, user, result.authrInfo);
+    request.session.loggedIn = true;
+    request.session.register.credentials_create_response = request.body;
+    request.session.register.parsedClientData = clientData;
+    request.session.register.relyingPartyResponse = result.attestationObject;
+    return response.json({
+      /*"clientData": clientData*/
+    });
+  }
 
-    if(result.verified) {
-        let user = request.session.user;
-        User.saveToDatabase(user);
-        database.createCredential(result.authrInfo.credID, user, result.authrInfo);            
-        request.session.loggedIn = true;
-        request.session.register.credentials_create_response = request.body;
-        request.session.register.parsedClientData = clientData;
-        //request.session.register.relyingPartyResponse = base64url.decode(request.body.response.attestationObject);
-        request.session.register.relyingPartyResponse = result.attestationObject;
-        return response.json({/*"clientData": clientData*/})
-    }
+  let message = result.message;
+  if (message.length <= 0)
+    message = "Can not authenticate signature! [" + result.fmt + "]";
 
-    let message =  result.message;
-    if( message.length <= 0 )
-        message = 'Can not authenticate signature! [' + result.fmt + "]";
-
-    return response.json({'message': message, signatureDetails: result.signatureLog})
-})
+  return response.json({
+    message: message,
+    signatureDetails: result.signatureLog,
+  });
+});
 
 /*
 function toHexString(byteArray) {
@@ -100,81 +125,101 @@ function toHexString(byteArray) {
 // ****************************************************************
 // Authentication 1/2: Get navigator.credentials.get() options
 
-router.post('/getPublicKeyCredentialRequestOptions', (request, response) => {
+router.post("/getPublicKeyCredentialRequestOptions", (request, response) => {
+  // Reset logs
+  request.session.loggedIn = false;
+  request.session.register = {};
+  request.session.authenticate = {};
 
-    // Reset logs
-    request.session.loggedIn = false;
-    request.session.register = {};
-    request.session.authenticate = {};
+  if (!request.body) return response.json({ message: "Invalid request" });
 
-    if(!request.body)
-        return response.json({'message': 'Invalid request'})
-        
-    let user = {isAdmin: false};
-    let authenticators = [];
-    // When no Resident Key, we need to specify the authenticator
-    if( request.body.requireResidentKey !== "yes" ) {
-        if(!request.body.name || request.body.name.length <= 0)
-            return response.json({'invalidField': 'name', 'invalidFieldMessage': 'Missing field'});
-        user = database.getUserByName(request.body.name);        
-        if( user == null )
-            return response.json({'invalidField': 'name', 'invalidFieldMessage': 'User did not exists'});
-        authenticators = database.getCredentials(user.id); 
+  let user = { isAdmin: false };
+  let authenticators = [];
+  // When no Resident Key, we need to specify the authenticator
+  if (request.body.requireResidentKey !== "yes") {
+    if (!request.body.name || request.body.name.length <= 0)
+      return response.json({
+        invalidField: "name",
+        invalidFieldMessage: "Missing field",
+      });
+    user = database.getUserByName(request.body.name);
+    if (user == null)
+      return response.json({
+        invalidField: "name",
+        invalidFieldMessage: "User did not exists",
+      });
+    authenticators = database.getCredentials(user.id);
 
-        // Check if Admin & password
-        if( database.checkAdminPassword(request.body.name, request.body.password) ){
-            request.session.user = user;
-            database.save();
-            request.session.loggedIn = true;
-            request.session.authenticate.clientData = "";
-            request.session.authenticate.assertion_response = "";
-            return response.json({user: user, loggedIn: request.session.loggedIn});
-        }
+    // Check if Admin & password
+    if (database.checkAdminPassword(request.body.name, request.body.password)) {
+      request.session.user = user;
+      database.save();
+      request.session.loggedIn = true;
+      request.session.authenticate.clientData = "";
+      request.session.authenticate.assertion_response = "";
+      return response.json({ user: user, loggedIn: request.session.loggedIn });
     }
+  }
 
-
-    let assertion    = utils.authenticatorGetAssertion(request.body.userVerification, authenticators)
-    request.session.authenticate.assertion = assertion;
-    return response.json({user: user, assertion: assertion, loggedIn: request.session.loggedIn});
-})
-
+  let assertion = utils.authenticatorGetAssertion(
+    request.body.userVerification,
+    authenticators
+  );
+  request.session.authenticate.assertion = assertion;
+  return response.json({
+    user: user,
+    assertion: assertion,
+    loggedIn: request.session.loggedIn,
+  });
+});
 
 // ****************************************************************
 // Authentication 2/2: Check AuthenticatorAssertionResponse
 
-router.post('/verifyAuthenticatorAssertionResponse', (request, response) => {
+router.post("/verifyAuthenticatorAssertionResponse", (request, response) => {
+  if (
+    !request.body ||
+    !request.body.response ||
+    !request.body.type ||
+    request.body.type !== "public-key"
+  )
+    return response.json({
+      message:
+        "Response missing one or more of response/type fields, or type is not public-key!",
+    });
 
-    if(!request.body       || !request.body.response
-    || !request.body.type  || request.body.type !== 'public-key' )
-        return response.json({'message': 'Response missing one or more of response/type fields, or type is not public-key!'})
+  // Format data
+  let clientData = JSON.parse(
+    base64url.decode(request.body.response.clientDataJSON)
+  );
 
-    // Format data
-    let clientData   = JSON.parse(base64url.decode(request.body.response.clientDataJSON));
+  // Check challenge...
+  if (clientData.challenge !== request.session.authenticate.assertion.challenge)
+    return response.json({ message: "Challenges don't match!" });
 
-    // Check challenge...
-    if(clientData.challenge !== request.session.authenticate.assertion.challenge)
-       return response.json({'message': 'Challenges don\'t match!'})
+  // ...and origin
+  if (clientData.origin !== config.origin)
+    return response.json({
+      message: "Origins don't match with: " + clientData.origin,
+    });
 
-    // ...and origin
-    if(clientData.origin !== config.origin)
-        return response.json({'message': 'Origins don\'t match with: ' + clientData.origin})
-
-    let credential = database.getCredential(request.body.id);
-    result = utils.verifyAuthenticatorAssertionResponse(request.body, [credential]);
-    if(result.verified) {        
-        request.session.user = database.getUser(credential.userId);
-        database.save();
-        request.session.loggedIn = true;
-        request.session.authenticate.clientData = clientData;
-        request.session.authenticate.assertion_response = request.body.response;
-        return response.json({})
-        //return response.json({"clientData": clientData , "assertion": request.session.authenticate.assertion , "assertion_response" : request.body.response })
-    }
-    return response.json({'message': 'Can not authenticate signature! [' + result.fmt + "]"})
-})
-
-
-
+  let credential = database.getCredential(request.body.id);
+  result = utils.verifyAuthenticatorAssertionResponse(request.body, [
+    credential,
+  ]);
+  if (result.verified) {
+    request.session.user = database.getUser(credential.userId);
+    database.save();
+    request.session.loggedIn = true;
+    request.session.authenticate.clientData = clientData;
+    request.session.authenticate.assertion_response = request.body.response;
+    return response.json({});
+    //return response.json({"clientData": clientData , "assertion": request.session.authenticate.assertion , "assertion_response" : request.body.response })
+  }
+  return response.json({
+    message: "Can not authenticate signature! [" + result.fmt + "]",
+  });
+});
 
 // ****************************************************************
 // Called after Register and Login
@@ -233,8 +278,5 @@ router.post('/response', (request, response) => {
     }
 })
 */
-
-
-
 
 module.exports = router;
