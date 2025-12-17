@@ -11,20 +11,35 @@ block content
       each authenticator in authenticators
         - var image = 'img/product/' + authenticator.deviceImage;
         - var cert = authenticator.cert;
+        - var isActive = authenticator.active; 
+
         div(class="row border mb-4")
           div(class="col-md-3 col-lg-2 my-auto")
             img(class="img-fluid", style="max-height: 100px" src=image)
-          div(class="col-md-8 text-start my-auto")
+          div(class="col-md-8 text-start mt-3 mb-3 my-auto")
             h4 #{authenticator.deviceName}
             | Type: #{authenticator.fmt}
             br
             | AAGUID: #{authenticator.aaguid}
             br
             | Counter: #{authenticator.counter}
-          div(class="col-md-1 text-center my-auto  mt-3 pt-3 mb-4 pb-4")
+            br
+            | Status: 
+            if !isActive
+              button(
+                class="btn btn-sm btn-danger"
+                onclick=`updateCredentialStatus('${authenticator.credId}', true)`
+              ) Deactivated
+
+            if isActive
+              button(
+                class="btn btn-sm btn-success"
+                onclick=`updateCredentialStatus('${authenticator.credId}', false)`
+              ) Activated
+          div(class="col-md-1 text-center my-auto  mt-5 pt-3 mb-4 pb-4")
             a(href=cert)
               img(src="img/certificate.png", width="50px")
-
+          
       
       div(class="row mt-3 mb-3")
         div(class="col-sm")
@@ -45,38 +60,30 @@ block content
       a(href="https://cpl.thalesgroup.com/access-management/contact-us" target="_blank") Contact us 
       
   script.
+    async function updateCredentialStatus(credId, newStatus) {
+      try {
+        const response = await fetch('/credential/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            credId: credId,
+            active: newStatus
+          })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          location.reload(); // rafraîchir la liste
+        } else {
+          alert("Error : " + result.error);
+        }
+      } catch (err) {
+        alert(err);
+      }
+    }
+
     $( document ).ready(function() {
-
-        $("#registerNewButton").click( function()
-        {
-          $('#error').empty();
-          let userVerification    = $('#userVerification').val();
-          let requireResidentKey  = $('#requireResidentKey').val();
-          alert(requireResidentKey)
-
-          //postWebAuthN('getMakeCredentialsChallenge', {userVerification, requireResidentKey})
-          postWebAuthN('getMakeCredentialsChallenge', {})
-            .then((response) => {
-              // Receive 'credentials create' options
-              let publicKey = preformatMakeCredReq(response);
-              return navigator.credentials.create({ publicKey });
-            })
-            .then((response) => {
-              let makeCredResponse = publicKeyCredentialToJSON(response);
-              return postWebAuthN('verifyAttestation', makeCredResponse);
-            })
-            .then((response) => {
-              if( response.message !== undefined) 
-                return $("#error").html(response.message)
-              // Success: redirect to main page
-              document.location.href="main";
-            })
-            .catch((error) => {
-              if (error instanceof DOMException)
-                return $("#error").html("The operation either timed out or was cancelled");                      
-              $("#error").html(error.message);
-            })
-        })
+      $("#registerNewButton").click( function() { makeCredential() })
     });
 
 

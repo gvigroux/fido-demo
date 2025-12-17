@@ -20,7 +20,7 @@ router.post("/getMakeCredentialsChallenge", (request, response) => {
   if (request.session.loggedIn && request.session.user !== undefined) {
     user = request.session.user;
   }
-  // New user
+  // New user000
   else {
     if (!request.body || !request.body.name)
       return response.json({
@@ -39,9 +39,6 @@ router.post("/getMakeCredentialsChallenge", (request, response) => {
   }
 
   let challengeMakeCred = utils.authenticatorMakeCredential(
-    request.body.userVerification,
-    request.body.discoverableCredential,
-    request.body.authenticatorAttachment,
     user.id,
     user.name,
     user.displayName,
@@ -89,7 +86,7 @@ router.post("/verifyAttestation", (request, response) => {
   if (result.verified) {
     let user = request.session.user;
     User.saveToDatabase(user);
-    database.createCredential(result.authrInfo.credID, user, result.authrInfo);
+    database.createCredential(user, result.authrInfo);
     request.session.loggedIn = true;
     request.session.register.credentials_create_response = request.body;
     request.session.register.parsedClientData = clientData;
@@ -108,19 +105,6 @@ router.post("/verifyAttestation", (request, response) => {
     signatureDetails: result.signatureLog,
   });
 });
-
-/*
-function toHexString(byteArray) {
-    return Array.from(byteArray, function(byte) {
-      return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-    }).join('')
-  }
-  function bufferToHex (buffer) {
-    return [...new Uint8Array (buffer)]
-        .map (b => b.toString (16).padStart (2, "0"))
-        .join ("");
-}
-*/
 
 // ****************************************************************
 // Authentication 1/2: Get navigator.credentials.get() options
@@ -148,7 +132,7 @@ router.post("/getPublicKeyCredentialRequestOptions", (request, response) => {
         invalidField: "name",
         invalidFieldMessage: "User did not exists",
       });
-    authenticators = database.getCredentials(user.id);
+    authenticators = database.getActiveCredentials(user.id);
 
     // Check if Admin & password
     if (database.checkAdminPassword(request.body.name, request.body.password)) {
@@ -161,10 +145,7 @@ router.post("/getPublicKeyCredentialRequestOptions", (request, response) => {
     }
   }
 
-  let assertion = utils.authenticatorGetAssertion(
-    request.body.userVerification,
-    authenticators
-  );
+  let assertion = utils.authenticatorGetAssertion(request.body, authenticators);
   request.session.authenticate.assertion = assertion;
   return response.json({
     user: user,

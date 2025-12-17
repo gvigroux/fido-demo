@@ -50,7 +50,6 @@ block content
   script.
     $( document ).ready(function() {
                    
-      //$('#register').submit(function(event) {
       $('#submit').on("click",function(){
 
         // Reset form states
@@ -63,45 +62,10 @@ block content
         if( $('#register')[0].checkValidity() == false )
           return $("#register")[0].reportValidity();
         
-        //let name                = this.name.value;
-        //let displayName         = this.displayName.value;
-        let name                = $('#name').val();
-        let displayName         = $('#displayName').val();
-        let userVerification        = $('#userVerification').val();
-        let discoverableCredential  = $('#discoverableCredential').val();
-        let authenticatorAttachment = $('#authenticatorAttachment').val();
-        let useExtensionUcm         = $('#useExtensionUcm').val();
-        let useExtensionCredProps   = $('#useExtensionCredProps').val();
-
         if( navigator.credentials == null)
           return $("#error").html(`Your browser in not supported`);
-      
-        postWebAuthN('getMakeCredentialsChallenge', {name, displayName, userVerification, discoverableCredential, authenticatorAttachment, useExtensionUcm, useExtensionCredProps})
-          .then((response) => {
-            // Receive 'credentials create' options
-            let publicKey = preformatMakeCredReq(response);
-            console.log(publicKey);
-            return navigator.credentials.create({ publicKey });
-          })
-          .then((response) => {
-            let makeCredResponse = publicKeyCredentialToJSON(response);
-            return postWebAuthN('verifyAttestation', makeCredResponse);
-          })
-          .then((response) => {
-            console.log(response.signatureDetails);
-            if( response.message !== undefined) 
-              return $("#error").html(response.message)
-            // Success: redirect to main page
-            document.location.href="main";
-          })
-          .catch((error) => {
-            console.log(error);
-            /*
-            if (error instanceof DOMException)
-              return $("#error").html("The operation either timed out or was cancelled");                      
-            $("#error").html(error.message);
-            */
-          })
-        })
+
+        makeCredential();
+      })
     });
 

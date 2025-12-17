@@ -53,6 +53,7 @@ block content
         let name                    = $('#name').val();
         let userVerification        = $('#userVerification').val();
         let requireResidentKey      = $('#requireResidentKey').val();
+        let allowCredentials        = $('#allowCredentials').val();
         var password                = "";
         
         if( $('#password').val().length > 0) {
@@ -63,7 +64,7 @@ block content
           return $("#error").html(`Your browser is not supported`);
 
       let user = {};
-        postWebAuthN('getPublicKeyCredentialRequestOptions', {name, userVerification, requireResidentKey, password})
+        postWebAuthN('getPublicKeyCredentialRequestOptions', {name, userVerification, requireResidentKey, password, allowCredentials})
           .then((response) => {
             // Save user
             user = response.user;
@@ -71,7 +72,17 @@ block content
               document.location.href="main";
 
             // Decode base64 id(s)
-            let publicKey = preformatGetAssertReq(response.assertion);
+            //let publicKey = preformatGetAssertReq(response.assertion);
+            let publicKey = response.assertion;
+
+            publicKey.challenge = base64url.decode(publicKey.challenge);
+
+            if (Array.isArray(publicKey.allowCredentials)) {
+              publicKey.allowCredentials.forEach((credential) => {
+                credential.id = base64url.decode(credential.id);
+              });
+            }
+
             console.log(publicKey);
             return navigator.credentials.get({ publicKey })
           })

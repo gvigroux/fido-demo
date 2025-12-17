@@ -75,7 +75,7 @@ block content
         let aaguid = event.target.id;
 
         if (confirm('Are you sure to delete this device?')) {
-          post('/deleteDevice', {aaguid})
+          post('deleteDevice', {aaguid})
             .then((response) => {
               if(response.invalidField !== undefined) {
                   $('#'+response.invalidField).addClass("is-invalid")
@@ -87,29 +87,7 @@ block content
               $("#error").html(error);
             })
         } 
-      });
-
-
-
-      /*
-      $('#add-image').submit(function(event) {
-        event.preventDefault();
-        $('#error').empty();
-        let imageImport   = this.imageImport.value;
-        post('addImage', {imageImport})
-          .then((response) => {
-            if(response.invalidField !== undefined) {
-                $('#'+response.invalidField).addClass("is-invalid")
-                return;
-            }
-            document.location.href="devices";
-          })
-          .catch((error) => {
-            $("#error").html(error);
-          })
-      });
-      */
-            
+      });     
 
 
       $('#add-device').submit(function(event) {
@@ -121,7 +99,7 @@ block content
         let aaguid  = this.aaguid.value;
         let image   = this.image.value;
 
-        post('/addDevice', {name, aaguid, image})
+        post('addDevice', {name, aaguid, image})
           .then((response) => {
             if(response.invalidField !== undefined) {
                 $('#'+response.invalidField).addClass("is-invalid")
@@ -131,6 +109,6 @@ block content
           })
           .catch((error) => {
             $("#error").html(error);
-          })
-        })
+          });
+      });
     });

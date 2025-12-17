@@ -2,10 +2,9 @@ const crypto = require("crypto");
 const base64url = require("base64url");
 const cbor = require("cbor");
 const fs = require("fs");
+const database = require("../class/database");
 const config = require("../config.json");
 const { Certificate } = require("@fidm/x509");
-
-let userVerificationDefault = "preferred"; //userVerification - can be set to "required", "preferred", "discouraged". More in WebAuthn specification. Default set to "preferred"
 
 /**
  * U2F Presence constant
@@ -41,28 +40,22 @@ let randomBase64URLBuffer = (len) => {
  * Generates makeCredentials request
  * @param  {String} username       - username
  * @param  {String} displayName    - user's personal display name
- * @param  {String} id             - user's base64url encoded id
+ * @param  {String} userId             - user's base64url encoded id
  * @return {MakePublicKeyCredentialOptions} - server encoded make credentials request
  */
-let authenticatorMakeCredential = (
-  userVerification,
-  discoverableCredential,
-  authenticatorAttachment,
-  id,
-  username,
-  displayName,
-  body
-) => {
+let authenticatorMakeCredential = (userId, username, displayName, body) => {
   let rpId = "fido.demo.gemalto.com";
   if (config.origin.indexOf("localhost") >= 0) rpId = "localhost";
 
-  if (userVerification == null) userVerification = userVerificationDefault;
+  userVerification = body.userVerification ?? "preferred";
+  discoverableCredential = body.discoverableCredential;
+  authenticatorAttachment = body.authenticatorAttachment;
 
   let requireResidentKey = false;
   if (discoverableCredential == "required") requireResidentKey = true;
 
+  // Manage extensions
   let extensions = {};
-
   if (body.useExtensionUcm == "yes") extensions["uvm"] = true;
   if (body.useExtensionCredProps == "yes") extensions["credProps"] = true;
 
@@ -91,7 +84,7 @@ let authenticatorMakeCredential = (
     },
     timeout: 90000,
     user: {
-      id: id,
+      id: userId,
       name: username,
       displayName: displayName,
     },
@@ -101,6 +94,15 @@ let authenticatorMakeCredential = (
     json.authenticatorSelection.authenticatorAttachment =
       authenticatorAttachment;
 
+  // Exclude credentials
+  if (body.excludeCredentials === "yes") {
+    const credentials = database.getActiveCredentials(userId) || [];
+    json.excludeCredentials = credentials.map((cred) => ({
+      id: cred.credId,
+      type: "public-key",
+    }));
+  }
+
   return json;
 };
 
@@ -109,26 +111,27 @@ let authenticatorMakeCredential = (
  * @param  {Array} authenticators              - list of registered authenticators
  * @return {PublicKeyCredentialRequestOptions} - server encoded get assertion request
  */
-let authenticatorGetAssertion = (userVerification, authenticators) => {
-  if (userVerification == null) userVerification = userVerificationDefault;
+let authenticatorGetAssertion = (body, authenticators) => {
+  userVerification = body.userVerification ?? "preferred";
+
   let rpId = "fido.demo.gemalto.com";
   if (config.origin.indexOf("localhost") >= 0) rpId = "localhost";
 
-  let allowCredentials = [];
-  for (let authr of authenticators) {
-    allowCredentials.push({
-      type: "public-key",
-      id: authr.credID,
-      //,transports: ['usb', 'nfc', 'ble']
-    });
-  }
-  return {
+  let json = {
     challenge: randomBase64URLBuffer(32),
     rpId: rpId,
     timeout: 90000,
-    allowCredentials: allowCredentials,
     userVerification: userVerification,
   };
+
+  if (body.allowCredentials === "yes") {
+    json.allowCredentials = (authenticators || []).map((authr) => ({
+      type: "public-key",
+      id: authr.credId,
+      // transports: ['usb', 'nfc', 'ble'] // décommenter si nécessaire
+    }));
+  }
+  return json;
 };
 
 /**
@@ -669,7 +672,7 @@ let androidSafetynetAttestation = (attestationObject, clientDataHash) => {
  */
 let findAuthr = (credID, authenticators) => {
   for (let authr of authenticators) {
-    if (authr.credID === credID) return authr;
+    if (authr.credId === credID) return authr;
   }
   throw new Error(`Unknown authenticator with credID ${credID}!`);
 };

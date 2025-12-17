@@ -37,15 +37,9 @@
       "display": true
     },
     {
-      "aaguid": "bb09dcac-a997-43d7-b53c-348621bfc6b8",
-      "name": " eToken Fusion NFC CC",
-      "image": "eTokenFIDO.png",
-      "display": true
-    },
-    {
       "aaguid": "707816cf-d6b2-4a93-92ba-3041eccd2cba",
-      "name": "eToken Fusion NFC",
-      "image": "eTokenFIDO.png",
+      "name": "eToken Fusion S2 NFC",
+      "image": "eTokenFusionNFC-USBA&C.png",
       "display": true
     },
     {
@@ -75,7 +69,7 @@
     {
       "aaguid": "4d41190c-7beb-4a84-8018-adf265a6352d",
       "name": "SafeNet IDPrime FIDO Bio",
-      "image": "BIOCard.png",
+      "image": "SafeNet IDPrime FIDO Bio.png",
       "display": true
     },
     {
@@ -86,8 +80,62 @@
     },
     {
       "aaguid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-      "name": " SafeNet IDPrime FIDO Bio",
-      "image": "BIOCard.png",
+      "name": "SafeNet IDPrime FIDO Bio",
+      "image": "SafeNet IDPrime FIDO Bio.png",
+      "display": true
+    },
+    {
+      "aaguid": "050dd0bc-ff20-4265-8d5d-305c4b215192",
+      "name": "eToken Fusion FIPS",
+      "image": "eToken_5300&5300C.png",
+      "display": true
+    },
+    {
+      "aaguid": "ece6a476-b67e-4e79-8ecb-adf6e6d92e87",
+      "name": "IDPrime PIV4.0",
+      "image": "IDPrime3940.png",
+      "display": true
+    },
+    {
+      "aaguid": "10c70715-2a9a-4de1-b0aa-3cff6d496d39",
+      "name": "eToken Fusion NFC FIPS",
+      "image": "eTokenFusionNFC-USBA&C.png",
+      "display": true
+    },
+    {
+      "aaguid": "d716019a-9f4e-4041-9750-17c78f8ae81a",
+      "name": "eToken Fusion BIO",
+      "image": "DualBio NoBG.png",
+      "display": true
+    },
+    {
+      "aaguid": "146e77ef-11eb-4423-b847-ce77864e9411",
+      "name": "SafeNet eToken Fusion NFC PIV",
+      "image": "eTokenFusionNFC-USBA&C.png",
+      "display": true
+    },
+    {
+      "aaguid": "c3f47802-de73-4dfc-ba22-671fe3304f90",
+      "name": " SafeNet eToken Fusion NFC PIV Enterprise",
+      "image": "eTokenFusionNFC-USBA&C.png",
+      "display": true
+    },
+    {
+      "aaguid": "2493b5fe-6555-412c-8d77-f4eb9a55bdaa",
+      "name": "SafeNet IDPrime FIDO 2.1 FIPS",
+      "image": "IDPrime FIDO.png",
+      "display": true
+    },
+    {
+      "aaguid": "b113a455-cfb6-4c17-8cba-cd952feb7d48",
+      "name": "Thales eToken FIDO NFC",
+      "image": "eTokenFusionNFC-USBA&C.png",
+      "display": true
+    },
+    {
+      "aaguid": "a6c5f5d8-2ad0-48b6-8257-e502c8970931",
+      "name": "Thales eToken FIDO NFC Enterprise",
+      "image": "eTokenFusionNFC-USBA&C.png",
       "display": true
     }
   ]

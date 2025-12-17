@@ -11,6 +11,7 @@ html
     
     link(rel='stylesheet', href='/css/thales.css')
     script(src='/crypto-js/crypto-js.js')
+    script(src='/js/makeCredential.js')
 
     meta(name="viewport", content="width=device-width, initial-scale=1, shrink-to-fit=yes")
     script.
@@ -58,10 +59,28 @@ html
             $('#useDisplayname').val(getCookie('dn', 'no'));
             $('#useExtensionUcm').val(getCookie('eu', 'no'));
             $('#useExtensionCredProps').val(getCookie('ec', 'no'));
+            $('#allowCredentials').val(getCookie('ca', 'yes'));
+            $('#excludeCredentials').val(getCookie('ce', 'yes'));
             updateLoginVisibility();
         });
 
-       window.onload = function() {
+        document.addEventListener('DOMContentLoaded', function () {
+          var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+          tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl)
+          })
+        });
+
+        window.addEventListener('hide.bs.modal', event => {
+          // Dès que le modal commence à se cacher, on blur l'élément focusé (souvent .btn-close)
+          if (document.activeElement && event.target.contains(document.activeElement)) {
+            document.activeElement.blur();
+          }
+        });
+
+
+       window.onload = function() {            
+  
 
             $("#option-link").click(function(e) {
                 e.preventDefault();
@@ -77,6 +96,8 @@ html
                 setCookie('dn' ,$('#useDisplayname').val(),360);
                 setCookie('eu' ,$('#useExtensionUcm').val(),360);
                 setCookie('ec' ,$('#useExtensionCredProps').val(),360);
+                setCookie('ca',$('#allowCredentials').val(),360);
+                setCookie('ce',$('#excludeCredentials').val(),360);
                 
                 updateLoginVisibility();
             })
@@ -132,12 +153,9 @@ html
         button(class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarFido" aria-controls="navbarFido" aria-expanded="false" aria-label="Toggle navigation")
           span(class="navbar-toggler-icon")
 
-        div(class="collapse navbar-collapse" id="navbarFido")
+        div(class="collapse navbar-collapse" id="navbarFido")          
+
           ul(class="navbar-nav me-auto mb-2 mb-lg-0")
-            li(class="nav-item d-none")
-              a(class="nav-link", href="/") 
-                i(class="fa-solid fa-box") 
-                | Play demo
             li(class="nav-item")
               a(class="nav-link", href="#", id="option-link")
                 i(class="fa-solid fa-gear") 
@@ -202,18 +220,50 @@ html
 
 
     // Modal
-    div(class="modal fade", id="optionModal", tabindex="-1", aria-labelledby="optionModalLabel", aria-hidden="true")
+    div(class="modal fade", id="optionModal", tabindex="-1", aria-labelledby="optionModalLabel", data-bs-aria-hidden="false")
       div(class="modal-dialog")
         div(class="modal-content")
           div(class="modal-header")
             h5(class="modal-title",id="optionModalLabel") Webauthn options
             button(type="button", class="btn-close", data-bs-dismiss="modal", aria-label="Close")   
 
-          div(class="modal-body")
-          
-              div(class="container")
+          div(class="modal-body")          
+              div(class="container mt-0 mb-0")
                 fieldset(class="mb-4")
-                  legend(class="h6") WebAuthn options
+                  legend(class="h6") User information
+                  div(class="row")
+                    label(
+                      class="fs-6 col-7 col-form-label", 
+                      data-bs-toggle="tooltip", 
+                      data-bs-placement="top", 
+                      title="Le nom affiché sera utilisé pour l'identification"
+                    ) Use Display name
+                    div(class="col-5")
+                      select(class="form-select" name="useDisplayname", id="useDisplayname")
+                        option(value="yes") yes
+                        option(value="no", selected) no
+                  div(class="row")
+                    label(class="fs-6 col-7 col-form-label" 
+                      data-bs-toggle="tooltip", 
+                      data-bs-placement="top", 
+                      title="During authentication, only know registered credentials will be allowed") Allow credentials
+                    div(class="col-5")
+                      select(class="form-select" name="allowCredentials", id="allowCredentials")
+                        option(value="yes", selected) yes
+                        option(value="no") no
+                  div(class="row")
+                    label(class="fs-6 col-7 col-form-label"
+                      data-bs-toggle="tooltip", 
+                      data-bs-placement="top", 
+                      title="The registration process will fails if the user already has a credential registered on the same device") Exclude credentials
+                    div(class="col-5")
+                      select(class="form-select" name="excludeCredentials", id="excludeCredentials")
+                        option(value="yes", selected) yes
+                        option(value="no") no
+
+
+                fieldset(class="mb-4")
+                  legend(class="h6") Security
                   div(class="row")
                     label(class="fs-6 col-7 col-form-label") User verification
                     div(class="col-5")
@@ -222,12 +272,15 @@ html
                         option(value="required") Required
                         option(value="discouraged") Discouraged
                   div(class="row")
-                    label(class="fs-6 col-7 col-form-label") Discoverable Credential
+                    label(class="fs-6 col-7 col-form-label") Get User Verification Method (uvm)
                     div(class="col-5")
-                      select(class="form-select" name="discoverableCredential", id="discoverableCredential")
-                        option(value="preferred") Preferred
-                        option(value="required") Required
-                        option(value="discouraged", selected) Discouraged
+                      select(class="form-select" name="useExtensionUcm", id="useExtensionUcm")
+                        option(value="yes") yes
+                        option(value="no", selected) no
+
+                        
+                fieldset(class="mb-4")
+                  legend(class="h6") Authenticator
                   div(class="row")
                     label(class="fs-6 col-7 col-form-label") Attachment
                     div(class="col-5")
@@ -236,20 +289,12 @@ html
                         option(value="cross-platform") Cross-Platform
                         option(value="platform") Platform
                   div(class="row")
-                    label(class="fs-6 col-7 col-form-label") Use Display name
+                    label(class="fs-6 col-7 col-form-label") Discoverable Credential
                     div(class="col-5")
-                      select(class="form-select" name="useDisplayname", id="useDisplayname")
-                        option(value="yes") yes
-                        option(value="no", selected) no
-
-                fieldset(class="mb-4")
-                  legend(class="h6") Extensions
-                  div(class="row")
-                    label(class="fs-6 col-7 col-form-label") User Verification Method (uvm)
-                    div(class="col-5")
-                      select(class="form-select" name="useExtensionUcm", id="useExtensionUcm")
-                        option(value="yes") yes
-                        option(value="no", selected) no
+                      select(class="form-select" name="discoverableCredential", id="discoverableCredential")
+                        option(value="preferred") Preferred
+                        option(value="required") Required
+                        option(value="discouraged", selected) Discouraged
                   div(class="row")
                     label(class="fs-6 col-7 col-form-label") Credential Properties (credProps)
                     div(class="col-5")
